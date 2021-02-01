@@ -5,10 +5,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.method.ScrollingMovementMethod;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -101,6 +105,26 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     append("GET: entries was null");
                 }
+            });
+        });
+    }
+
+    public void addTask(String name) {
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            Task task = new Task(name);
+            long id = taskDatabase.taskDao().insert(task);
+            handler.post(() -> {
+                //UI Thread work here
+                append("ADDED: " + task.getName() + " ID: " + id);
+                // Add a new task
+                tasks.add(0, task);
+// Notify the adapter that an item was inserted at position 0
+                adapter.notifyItemInserted(0);
+                rvTasks.scrollToPosition(0);
             });
         });
     }
@@ -273,6 +297,36 @@ public class MainActivity extends AppCompatActivity {
         editText.setText("");
     }
 
+    /** Called when the user taps the FAB button */
+    public void fabButton(View view) {
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View editTextView = inflater.inflate(R.layout.text_input, null);
+
+        builder.setMessage("Name")
+                .setView(editTextView)
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        EditText input = editTextView.findViewById(R.id.editName);
+                        //get the name of the Task to add
+                        String name = input.getText().toString();
+                        addTask(name);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User cancelled the dialog
+                    }
+                });
+        builder.show();
+        /*
+        // Create the AlertDialog object and return it
+        AddDialogFragment fragment = new AddDialogFragment();
+        fragment.show(getSupportFragmentManager(), "add");
+        */
+    }
 
     /**
      * Get the name of a particular id from the database

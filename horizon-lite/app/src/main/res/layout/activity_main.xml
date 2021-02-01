@@ -95,8 +95,8 @@
             app:layout_constraintEnd_toEndOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="364dp"
-            android:layout_height="348dp"
+            android:layout_width="380dp"
+            android:layout_height="347dp"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginLeft="16dp"
             android:layout_marginStart="16dp"
@@ -110,5 +110,18 @@
             app:layoutManager="LinearLayoutManager"
             android:scrollbars="vertical"
             android:id="@+id/rvTasks" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            app:srcCompat="@android:drawable/ic_input_add"
+            android:id="@+id/floatingActionButton"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="33dp"
+            android:layout_marginEnd="17dp"
+            android:layout_marginRight="17dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:onClick="fabButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
