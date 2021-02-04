@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">horizon-lite</string>
+    <!-- <string name="app_name">horizon-lite</string> -->
+    <string name="app_name">Horizon Lite</string>
 </resources>

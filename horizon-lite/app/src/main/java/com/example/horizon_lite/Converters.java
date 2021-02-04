@@ -2,17 +2,21 @@ package com.example.horizon_lite;
 
 import androidx.room.TypeConverter;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class Converters {
     @TypeConverter
-    public static Date fromTimestamp( Long value) {
-        return value == null ? null : new Date(value);
+    public static LocalDate fromTimestamp( String value) {
+        return LocalDate.parse(value);
     }
 
     @TypeConverter
-    public static Long dateToTimestamp(Date date) {
-        return date == null ? null : date.getTime();
+    public static String dateToTimestamp(LocalDate date) {
+        if (date == null) {
+            return null;
+        }
+        return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 }

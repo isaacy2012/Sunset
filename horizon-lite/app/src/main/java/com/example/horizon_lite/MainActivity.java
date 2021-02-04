@@ -1,11 +1,15 @@
 package com.example.horizon_lite;
 
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
-import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,13 +18,22 @@ import android.os.Looper;
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.time.LocalDate;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -28,8 +41,15 @@ public class MainActivity extends AppCompatActivity {
     //private fields for the Dao and the Database
     public static TaskDatabase taskDatabase;
     RecyclerView rvTasks;
-    List<Task> tasks;
     TasksAdapter adapter;
+
+    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+        @Override
+        public void migrate( SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE tasks "
+                    + " ADD COLUMN late INTEGER");
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         executor.execute(() -> {
             //Background work here
             //NB: This is the new thread in which the database stuff happens
-            tasks = taskDatabase.taskDao().getAllTasks();
+            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasks();
             Collections.reverse(tasks);
             handler.post(() -> {
                 // Create adapter passing in the sample user data
@@ -65,10 +85,70 @@ public class MainActivity extends AppCompatActivity {
                 // Set layout manager to position the items
                 rvTasks.setLayoutManager(new LinearLayoutManager(this));
                 // That's all!
+                //overscroll mode
+                //rvTasks.setOverScrollMode(View.OVER_SCROLL_NEVER);
             });
         });
+        updateStreak();
     }
 
+    /**
+     * Update the streak
+     */
+    public void updateStreak() {
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            //NB: This is the new thread in which the database stuff happens
+            int streak = 0;
+
+            Task lastStreakTask = taskDatabase.taskDao().getLastStreakTask(Converters.dateToTimestamp(LocalDate.now()));
+            if (lastStreakTask != null) { //if there was a previous failed task
+                //the streak is the difference between the day after that day and today
+                streak = (int)DAYS.between(lastStreakTask.getDate(), LocalDate.now())-1;
+                if (streak == -1) { //
+                } else if (streak < -1) {
+                    streak = 0;
+                }
+            } else { //if there were no previous failed tasks
+                Task firstEverTask = taskDatabase.taskDao().getFirstEverTask();
+                if (firstEverTask == null) {
+                    streak = 0; //if there are no tasks at all ever, then the streak is 0
+                } else { //day difference between the first ever (completed) task and today is the streak
+                    streak = (int)DAYS.between(firstEverTask.getDate(), LocalDate.now());
+                }
+            }
+
+            //if today is all completed, add a streak
+            List<Task> todayTasks = taskDatabase.taskDao().getTodayTasks(Converters.dateToTimestamp(LocalDate.now()));
+            //List<Task> todayTasks = taskDatabase.taskDao().getTodayTasks();
+            boolean ok = true;
+            if (todayTasks.size() > 0) { //if there are tasks today
+                for (Task task : todayTasks) {
+                    if (task.getComplete() == false) {
+                        ok = false;
+                    }
+                }
+                if (ok == true) { //increase the streak by 1 if all the tasks are done
+                    streak = streak+1;
+                }
+            } else { //if there are no tasks today
+                if (streak != 0) { //only increase the streak by 1 if the streak isn't 0
+                    streak = streak+1;
+                }
+            }
+            //------------------
+            final String finalStreak = String.valueOf(streak);
+
+            handler.post(() -> {
+                TextView streakCounter = findViewById(R.id.streakCounter);
+                streakCounter.setText(finalStreak);
+            });
+        });
+
+    }
 
 
     /**
@@ -109,6 +189,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Add a task to the database
+     * @param name the name of the task
+     */
     public void addTask(String name) {
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -117,25 +201,33 @@ public class MainActivity extends AppCompatActivity {
             //Background work here
             Task task = new Task(name);
             long id = taskDatabase.taskDao().insert(task);
+            task.setId((int) id);
             handler.post(() -> {
                 //UI Thread work here
                 append("ADDED: " + task.getName() + " ID: " + id);
                 // Add a new task
-                tasks.add(0, task);
-// Notify the adapter that an item was inserted at position 0
+                adapter.addTask(0, task);
+                // Notify the adapter that an item was inserted at position 0
                 adapter.notifyItemInserted(0);
+                //rvTasks.scheduleLayoutAnimation();
                 rvTasks.scrollToPosition(0);
+                //rvTasks.scheduleLayoutAnimation();
             });
         });
+        updateStreak();
     }
 
     /**
      * When the command button is clicked, either add or remove an Task
      * @param view
      */
+    /**
     public void commandButton( View view ) {
         EditText editText = findViewById(R.id.editText);
         String command = editText.getText().toString();
+        if (command.equals("") == true || InnerHealth.nWords(command) == 0) {
+            return;
+        }
         if (InnerHealth.nWord(command, 0).equals("add") == true) { //add an task
             //checking the command is correctly formed
             if (command.length()<InnerHealth.nWord(command, 0).length()+1) {
@@ -155,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
                     //UI Thread work here
                     append("ADDED: " + task.getName() + " ID: " + id);
                     // Add a new task
-                    tasks.add(0, task);
+                    adapter.addTask(0, task);
 // Notify the adapter that an item was inserted at position 0
                     adapter.notifyItemInserted(0);
                     rvTasks.scrollToPosition(0);
@@ -296,22 +388,25 @@ public class MainActivity extends AppCompatActivity {
         }
         editText.setText("");
     }
+     */
 
     /** Called when the user taps the FAB button */
     public void fabButton(View view) {
 
         // Use the Builder class for convenient dialog construction
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
         LayoutInflater inflater = LayoutInflater.from(this);
         View editTextView = inflater.inflate(R.layout.text_input, null);
+        EditText input = editTextView.findViewById(R.id.editName);
+        input.requestFocus();
 
         builder.setMessage("Name")
                 .setView(editTextView)
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        EditText input = editTextView.findViewById(R.id.editName);
                         //get the name of the Task to add
                         String name = input.getText().toString();
+                        //add the task
                         addTask(name);
                     }
                 })
@@ -320,48 +415,10 @@ public class MainActivity extends AppCompatActivity {
                         // User cancelled the dialog
                     }
                 });
-        builder.show();
-        /*
-        // Create the AlertDialog object and return it
-        AddDialogFragment fragment = new AddDialogFragment();
-        fragment.show(getSupportFragmentManager(), "add");
-        */
-    }
-
-    /**
-     * Get the name of a particular id from the database
-     * @deprecated
-     * @param view
-     */
-    public void getNameFromID( View view ) {
-        EditText getIDEdit = findViewById(R.id.getIDEdit);
-        String getIDEditText = getIDEdit.getText().toString();
-        if (getIDEditText.equals("") == true) {
-            return;
-        }
-        //clear the textEdit
-        getIDEdit.setText("");
-
-        //get the id of the Task to query
-        int id = Integer.parseInt(getIDEditText);
-
-        //ROOM Threads
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-        executor.execute(() -> {
-            //Background work here
-            Task task = taskDatabase.taskDao().getTask(id);
-            handler.post(() -> {
-                //UI Thread work here
-                if (task != null) {
-                    //append to the CLI the name
-                    append("GET: " + task.getName());
-                } else {
-                    //append to the CLI the error message
-                    append("GET: task was null");
-                }
-            });
-        });
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setDimAmount(0.0f);
+        dialog.show();
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 
     }
 

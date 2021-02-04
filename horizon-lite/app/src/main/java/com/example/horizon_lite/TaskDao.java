@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -15,7 +16,7 @@ public interface TaskDao {
 
     /**
      * Inserts an Task
-     * In the case of a conflict, it simply replacesthe existing task
+     * In the case of a conflict, it simply replaces the existing Task
      * @param task the Task to insert
      * @return the rowID (primary key) of the Task
      */
@@ -45,7 +46,7 @@ public interface TaskDao {
 
 
     /**
-     * Get a single task from the id
+     * Get a single Task from the id
      * @param id the id (primary key) of the task
      * @return the task
      */
@@ -53,11 +54,25 @@ public interface TaskDao {
     public Task getTask( int id );
 
     /**
-     * Returns all tasks as a List
-     * @return all the tasks in the database as a List
+     * Returns all Tasks as a List
+     * @return all the Tasks in the database as a List
      */
     @Query("SELECT * FROM tasks")
     public List<Task> getAllTasks();
+
+    /**
+     * Returns all of todays tasks as a List
+     * @return all the tasks in the database as a List
+     */
+    @Query("SELECT * FROM tasks WHERE date(date) = date(:today)")
+    public List<Task> getTodayTasks( String today);
+
+    /**
+     * Returns all uncompleted Tasks as a List
+     * @return all the uncompleted Tasks in the database as a List
+     */
+    @Query("SELECT * FROM tasks WHERE complete = 0")
+    public List<Task> getAllUncompletedTasks();
 
     /**
      * Returns all Entries that match the name
@@ -66,5 +81,19 @@ public interface TaskDao {
      */
     @Query("SELECT * FROM tasks WHERE name = :name")
     public List<Task> getTasks(String name);
+
+    /**
+     * Returns the last failed Task
+     * @return
+     */
+    @Query("SELECT * FROM tasks WHERE (complete = 0 AND julianday(date) < julianday(:today)) OR (late = 1 AND julianday(date) < julianday(:today)) ORDER BY ROWID DESC LIMIT 1")
+    public Task getLastStreakTask(String today);
+
+    /**
+     * Returns the first ever Task
+     * @return
+     */
+    @Query("SELECT * FROM tasks ORDER BY ROWID ASC LIMIT 1")
+    public Task getFirstEverTask();
 
 }

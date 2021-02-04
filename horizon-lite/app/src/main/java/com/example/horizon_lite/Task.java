@@ -1,10 +1,16 @@
 package com.example.horizon_lite;
 
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import java.time.LocalDate;
 import java.util.Date;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 //table name is 'entries'
 @Entity(tableName = "tasks")
@@ -15,14 +21,16 @@ public class Task implements Comparable<Task> {
     //placeholder id
     private int id = 0;
     private String name;
-    private Date date;
+    private LocalDate date;
     private boolean complete = false;
+    private boolean late = false;
 
 
     //constructor
     public Task( String name ) {
         this.name = name;
-        this.date = new Date();
+        this.date = LocalDate.now();
+
     }
 
 
@@ -39,16 +47,16 @@ public class Task implements Comparable<Task> {
         return name;
     }
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate( Date date ) {
+    public void setDate( LocalDate date ) {
         this.date = date;
     }
 
     public String getDateString() {
-        return this.date.toString();
+        return Converters.dateToTimestamp(this.date);
     }
 
     public void setComplete( boolean complete ) {
@@ -57,10 +65,23 @@ public class Task implements Comparable<Task> {
 
     public void toggleComplete() {
         this.complete = (this.complete == false);
+        if (this.complete == true) {
+            if ((int)DAYS.between(this.date, LocalDate.now()) != 0) {
+                late = true;
+            }
+        }
     }
 
     public boolean getComplete() {
         return this.complete;
+    }
+
+    public boolean isLate() {
+        return late;
+    }
+
+    public void setLate( boolean late ) {
+        this.late = late;
     }
 
     @Override

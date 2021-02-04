@@ -6,21 +6,43 @@
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
         app:cardCornerRadius="3dp"
-        app:cardBackgroundColor="@color/cardview_light_background"
         app:cardUseCompatPadding="true"
-        app:contentPaddingLeft="5dp"
-        app:contentPaddingRight="0dp">
+        app:contentPaddingLeft="10dp"
+        app:contentPaddingRight="0dp"
+        style="@style/CardView.DayNight"
+        app:contentPaddingTop="10dp"
+        app:contentPaddingBottom="10dp"
+        android:layout_marginHorizontal="16dp">
 
     <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:id="@+id/bulletPoint"
+                android:fontFamily="sans-serif-black"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textSize="30sp"
+                android:text="•"
+                android:textAlignment="textEnd"
+                android:textStyle="bold"
+                android:layout_marginTop="4dp"
+                android:textColor="#D15B5B"
+                android:layout_marginRight="8dp"
+                android:layout_marginLeft="4dp" />
+
         <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/nameView"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textSize="18sp" />
 
         <CheckBox
                 android:layout_width="40dp"

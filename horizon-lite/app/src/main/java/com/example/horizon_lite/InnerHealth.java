@@ -1,5 +1,6 @@
 package com.example.horizon_lite;
 
+import java.util.Date;
 import java.util.Scanner;
 
 public class InnerHealth {
@@ -35,4 +36,5 @@ public class InnerHealth {
         }
         return counter;
     }
+
 }
