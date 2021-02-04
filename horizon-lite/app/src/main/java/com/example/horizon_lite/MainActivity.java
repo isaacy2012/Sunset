@@ -103,15 +103,10 @@ public class MainActivity extends AppCompatActivity {
             //Background work here
             //NB: This is the new thread in which the database stuff happens
             int streak = 0;
-
             Task lastStreakTask = taskDatabase.taskDao().getLastStreakTask(Converters.dateToTimestamp(LocalDate.now()));
             if (lastStreakTask != null) { //if there was a previous failed task
                 //the streak is the difference between the day after that day and today
                 streak = (int)DAYS.between(lastStreakTask.getDate(), LocalDate.now())-1;
-                if (streak == -1) { //
-                } else if (streak < -1) {
-                    streak = 0;
-                }
             } else { //if there were no previous failed tasks
                 Task firstEverTask = taskDatabase.taskDao().getFirstEverTask();
                 if (firstEverTask == null) {
