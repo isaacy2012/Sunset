@@ -1,40 +1,25 @@
 package com.example.horizon_lite.activities;
 
-import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.method.ScrollingMovementMethod;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.EditText;
-import android.widget.TextView;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
-import androidx.room.migration.Migration;
-import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.example.horizon_lite.R;
 import com.example.horizon_lite.Task;
 import com.example.horizon_lite.recyclerViews.ArchiveTasksAdapter;
-import com.example.horizon_lite.recyclerViews.TasksAdapter;
-import com.example.horizon_lite.room.Converters;
 import com.example.horizon_lite.room.TaskDatabase;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static com.example.horizon_lite.activities.MainActivity.taskDatabase;
-import static java.time.temporal.ChronoUnit.DAYS;
 
 
 public class ArchiveActivity extends AppCompatActivity {
@@ -43,6 +28,7 @@ public class ArchiveActivity extends AppCompatActivity {
     public static TaskDatabase taskDatabase;
     RecyclerView rvTasks;
     ArchiveTasksAdapter adapter;
+    ArrayList<String> names = new ArrayList<String>();
 
 
     @Override
@@ -75,10 +61,28 @@ public class ArchiveActivity extends AppCompatActivity {
                 // Set layout manager to position the items
                 rvTasks.setLayoutManager(new LinearLayoutManager(this));
                 // That's all!
-                //overscroll mode
-                //rvTasks.setOverScrollMode(View.OVER_SCROLL_NEVER);
             });
         });
+    }
+
+    /**
+     * Add a name to the List of names for adding back to the main tasks
+     * @param name the name to add
+     */
+    public void addName(String name) {
+        names.add(name);
+    }
+
+    @Override
+    public void onBackPressed() {
+        String[] nameArray = new String[names.size()];
+        //ensure names is converted to array of Strings
+        nameArray = names.toArray(nameArray);
+        Intent intent = new Intent();
+        //pass back the names to the MainActivity
+        intent.putExtra("names", nameArray);
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
 

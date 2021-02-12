@@ -1,6 +1,8 @@
 package com.example.horizon_lite.recyclerViews;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +10,7 @@ import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.horizon_lite.R;
@@ -34,7 +37,6 @@ public class ArchiveTasksAdapter extends
     public class ViewHolder extends RecyclerView.ViewHolder {
         // Your holder should contain a member variable
         // for any view that will be set as you render a row
-        public TextView bulletPoint;
         public TextView nameTextView;
         public ImageButton imageButton;
         public Task task;
@@ -46,19 +48,12 @@ public class ArchiveTasksAdapter extends
             // to access the context from any ViewHolder instance.
             super(itemView);
 
-            bulletPoint = (TextView) itemView.findViewById(R.id.bulletPoint);
             nameTextView = (TextView) itemView.findViewById(R.id.nameView);
             imageButton = (ImageButton) itemView.findViewById(R.id.replayButton);
             imageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Task newTask = new Task(task.getName());
-                    //ROOM Threads
-                    ExecutorService executor = Executors.newSingleThreadExecutor();
-                    executor.execute(() -> {
-                        //Background work here
-                        ArchiveActivity.taskDatabase.taskDao().insert(newTask);
-                    });
+                    ((ArchiveActivity)context).addName(task.getName());
                 }
             });
         }
@@ -105,9 +100,6 @@ public class ArchiveTasksAdapter extends
         // Set item views based on your views and data model
         TextView textView = holder.nameTextView;
         textView.setText(holder.task.getName());
-        if ((int)DAYS.between(holder.task.getDate(), LocalDate.now()) == 0) {
-            holder.bulletPoint.setVisibility(View.GONE);
-        }
 
     }
 

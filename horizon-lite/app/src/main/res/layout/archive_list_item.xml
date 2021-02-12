@@ -28,19 +28,21 @@
                 android:fontFamily="sans-serif-medium"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textSize="18sp"
-                android:layout_marginTop="10dp" />
+                android:layout_marginVertical="12dp" />
 
         <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="27dp"
+                android:layout_height="27dp"
                 android:id="@+id/replayButton"
                 android:layout_weight="0"
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
                 android:src="@drawable/ic_baseline_replay_24"
-                android:background="@android:color/transparent"
+                android:background="?android:selectableItemBackgroundBorderless"
                 android:paddingTop="10dp"
-                android:paddingBottom="10dp" />
+                android:paddingBottom="10dp"
+                android:layout_marginVertical="10dp"
+                android:layout_marginRight="12dp" />
 
     </LinearLayout>
 

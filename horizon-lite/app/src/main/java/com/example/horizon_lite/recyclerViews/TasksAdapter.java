@@ -14,6 +14,7 @@ import com.example.horizon_lite.Task;
 import com.example.horizon_lite.activities.MainActivity;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,6 +52,36 @@ public class TasksAdapter extends
                 @Override
                 public void onClick(View v) {
                     task.toggleComplete();
+                    int currentPosition = tasks.indexOf(task);
+                    if (task.getComplete() == true) {
+                        boolean found = false;
+                        while ( found == false ) {
+                            for (int i = currentPosition; i < tasks.size()-1  ; i++) {
+                                if (tasks.get(i+1).getComplete() == false) {
+                                    Collections.swap(tasks, i, i+1);
+                                } else {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (found == false) {
+                                //reached end
+                                found = true;
+                            }
+                        }
+                        int newPosition = tasks.indexOf(task);
+                        notifyItemMoved(currentPosition, newPosition);
+                    } else {
+                        Task task = tasks.get(currentPosition);
+                        tasks.remove(currentPosition);
+                        tasks.add(0, task);
+                        notifyItemMoved(currentPosition, 0);
+                    }
+//                    StringBuilder printOut = new StringBuilder();
+//                    for (Task task : tasks) {
+//                        printOut.append(task.getName()).append(", ");
+//                    }
+//                    System.out.println(printOut.toString());
                     //ROOM Threads
                     ExecutorService executor = Executors.newSingleThreadExecutor();
                     executor.execute(() -> {
@@ -71,6 +102,7 @@ public class TasksAdapter extends
     public TasksAdapter(List<Task> tasks) {
         this.tasks = tasks;
     }
+
 
     /**
      * Add a task

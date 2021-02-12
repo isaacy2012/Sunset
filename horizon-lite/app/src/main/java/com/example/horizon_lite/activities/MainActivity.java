@@ -28,6 +28,8 @@ import com.example.horizon_lite.recyclerViews.TasksAdapter;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -43,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView rvTasks;
     TasksAdapter adapter;
 
+    private final int LIST_TASK_REQUEST = 1;
+
     static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate( SupportSQLiteDatabase database) {
@@ -51,9 +55,34 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public void goToArchive(View view) {
+    /**
+     * When the archive button is pressed
+     * @param view
+     */
+    public void onArchiveButton( View view) {
         Intent intent = new Intent(this, ArchiveActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent, LIST_TASK_REQUEST);
+    }
+
+    /**
+     * When there is a result from an activity
+     * @param requestCode the requestCode
+     * @param resultCode the resultCode
+     * @param data the data from the activity
+     */
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == LIST_TASK_REQUEST) {
+            if(resultCode == RESULT_OK) {
+                String[] names = data.getStringArrayExtra("names");
+                ArrayList<String> namesAL = new ArrayList<String>();
+                Collections.addAll(namesAL, names);
+                addTasks(namesAL);
+//                for (String name : names) {
+//                    addTask(name);
+//                }
+            }
+        }
     }
 
     @Override
@@ -215,6 +244,39 @@ public class MainActivity extends AppCompatActivity {
             });
         });
         updateStreak();
+    }
+
+    /**
+     * Add multiple tasks
+     * @param names the names of the tasks
+     */
+    public void addTasks(ArrayList<String> names) {
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        ArrayList<Task> tasks = new ArrayList<Task>();
+        executor.execute(() -> {
+            //Background work here
+            for (String name : names) {
+                Task task = new Task(name);
+                long id = taskDatabase.taskDao().insert(task);
+                task.setId((int) id);
+                tasks.add(task);
+            }
+            handler.post(() -> {
+                for (Task task : tasks) {
+                    // Add a new task
+                    adapter.addTask(0, task);
+                    // Notify the adapter that an item was inserted at position 0
+                    adapter.notifyItemInserted(0);
+                    //rvTasks.scheduleLayoutAnimation();
+                    rvTasks.scrollToPosition(0);
+                    //rvTasks.scheduleLayoutAnimation();
+                }
+            });
+        });
+        updateStreak();
+
     }
 
     /**
