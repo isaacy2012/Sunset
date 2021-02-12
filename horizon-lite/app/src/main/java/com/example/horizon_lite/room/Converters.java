@@ -1,4 +1,4 @@
-package com.example.horizon_lite;
+package com.example.horizon_lite.room;
 
 import androidx.room.TypeConverter;
 

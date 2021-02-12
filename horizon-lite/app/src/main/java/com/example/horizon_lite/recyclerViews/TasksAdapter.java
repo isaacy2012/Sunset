@@ -1,19 +1,17 @@
-package com.example.horizon_lite;
+package com.example.horizon_lite.recyclerViews;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.animation.ScaleAnimation;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.horizon_lite.R;
+import com.example.horizon_lite.Task;
+import com.example.horizon_lite.activities.MainActivity;
 
 import java.time.LocalDate;
 import java.util.List;

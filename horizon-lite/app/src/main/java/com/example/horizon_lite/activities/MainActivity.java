@@ -1,6 +1,5 @@
-package com.example.horizon_lite;
+package com.example.horizon_lite.activities;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -9,7 +8,6 @@ import androidx.room.Room;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,17 +16,19 @@ import android.os.Looper;
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.example.horizon_lite.room.Converters;
+import com.example.horizon_lite.R;
+import com.example.horizon_lite.Task;
+import com.example.horizon_lite.room.TaskDatabase;
+import com.example.horizon_lite.recyclerViews.TasksAdapter;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,6 +50,11 @@ public class MainActivity extends AppCompatActivity {
                     + " ADD COLUMN late INTEGER");
         }
     };
+
+    public void goToArchive(View view) {
+        Intent intent = new Intent(this, ArchiveActivity.class);
+        startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

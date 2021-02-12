@@ -1,10 +1,12 @@
-package com.example.horizon_lite;
+package com.example.horizon_lite.room;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
+
+import com.example.horizon_lite.Task;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,7 +23,7 @@ public interface TaskDao {
      * @return the rowID (primary key) of the Task
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    public long insert(Task task);
+    public long insert( Task task);
 
     /**
      * Updates an task
@@ -73,6 +75,13 @@ public interface TaskDao {
      */
     @Query("SELECT * FROM tasks WHERE complete = 0")
     public List<Task> getAllUncompletedTasks();
+
+    /**
+     * Returns all uncompleted Tasks as a List
+     * @return all the uncompleted Tasks in the database as a List
+     */
+    @Query("SELECT * FROM tasks WHERE complete = 1")
+    public List<Task> getAllCompletedTasks();
 
     /**
      * Returns all Entries that match the name

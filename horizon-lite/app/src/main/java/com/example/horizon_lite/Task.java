@@ -1,14 +1,11 @@
 package com.example.horizon_lite;
 
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
-import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.example.horizon_lite.room.Converters;
+
 import java.time.LocalDate;
-import java.util.Date;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
