@@ -8,8 +8,10 @@ import androidx.room.Room;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -29,7 +31,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     public static TaskDatabase taskDatabase;
     RecyclerView rvTasks;
     TasksAdapter adapter;
+    SharedPreferences sharedPreferences;
 
     private final int LIST_TASK_REQUEST = 1;
 
@@ -94,6 +96,9 @@ public class MainActivity extends AppCompatActivity {
         //make the textView scrollable
         textView.setMovementMethod(new ScrollingMovementMethod());
 
+        //streak
+        sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+
         //initialise the database
         taskDatabase = Room.databaseBuilder(getApplicationContext(),
                 TaskDatabase.class, "tasks")
@@ -130,54 +135,113 @@ public class MainActivity extends AppCompatActivity {
      * Update the streak
      */
     public void updateStreak() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+
+        //if the streak hasn't been updated today
+        String timeString = sharedPreferences.getString(getString(R.string.last_updated), "never");
+        LocalDate lastUpdated;
+        long daysBetween = 0;
+        if (timeString.equals("never") == false) {
+            lastUpdated = Converters.fromTimestamp(timeString);
+            daysBetween = DAYS.between(lastUpdated, LocalDate.now());
+        }
+        if (timeString.equals("never") || daysBetween != 0) {
+            if (sharedPreferences.getBoolean(getString(R.string.increase_streak), false) == true) {
+                //update sharedPreferences
+                editor = sharedPreferences.edit();
+                //ROOM Threads
+                ExecutorService executor1 = Executors.newSingleThreadExecutor();
+                Handler handler = new Handler(Looper.getMainLooper());
+                SharedPreferences.Editor finalEditor = editor;
+                executor1.execute(() -> {
+                    //Background work here
+                    //NB: This is the new thread in which the database stuff happens
+
+
+                    //calculate the maximum streak
+                    int streak = sharedPreferences.getInt(getString(R.string.streak), 0);
+                    int maxStreak = 0;
+                    Task lastStreakTask = taskDatabase.taskDao().getLastStreakTask(Converters.dateToTimestamp(LocalDate.now()));
+                    if (lastStreakTask != null) { //if there was a previous failed task
+                        //the streak is the difference between the day after that day and today
+                        maxStreak = (int)DAYS.between(lastStreakTask.getDate(), LocalDate.now())-1;
+                    } else { //if there were no previous failed tasks
+                        Task firstEverTask = taskDatabase.taskDao().getFirstEverTask();
+                        if (firstEverTask == null) {
+                            maxStreak = 0; //if there are no tasks at all ever, then the streak is 0
+                        } else { //day difference between the first ever (completed) task and today is the streak
+                            maxStreak = (int)DAYS.between(firstEverTask.getDate(), LocalDate.now());
+                        }
+                    }
+
+
+                    List<Task> todayTasks = taskDatabase.taskDao().getTodayTasks(Converters.dateToTimestamp(LocalDate.now()));
+                    if (allTasksCompletedTodayRequireAtLeastOne(todayTasks) == true) {
+                        maxStreak = maxStreak+1;
+                    }
+                    streak = streak+1;
+                    //if the new streak is greater than the maximum theoretical streak, then set it to the max
+                    System.out.println("max: " + maxStreak);
+                    if (streak > maxStreak) {
+                        streak = maxStreak;
+                    }
+                    //--------------------------------
+                    final int finalStreak = streak;
+
+                    handler.post(() -> {
+                        finalEditor.putInt(getString(R.string.streak), finalStreak);
+                        finalEditor.apply();
+
+                        //update the streakCounter
+                        TextView streakCounter = findViewById(R.id.streakCounter);
+                        streakCounter.setText(String.valueOf(finalStreak));
+                    });
+                });
+            }
+            //update the "last updated" date to today
+            editor = sharedPreferences.edit();
+            editor.putString(getString(R.string.last_updated), Converters.dateToTimestamp(LocalDate.now()));
+            editor.apply();
+        }
+
+        //update the streakcounter
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
+        SharedPreferences.Editor finalEditor1 = editor;
         executor.execute(() -> {
             //Background work here
             //NB: This is the new thread in which the database stuff happens
-            int streak = 0;
-            Task lastStreakTask = taskDatabase.taskDao().getLastStreakTask(Converters.dateToTimestamp(LocalDate.now()));
-            if (lastStreakTask != null) { //if there was a previous failed task
-                //the streak is the difference between the day after that day and today
-                streak = (int)DAYS.between(lastStreakTask.getDate(), LocalDate.now())-1;
-            } else { //if there were no previous failed tasks
-                Task firstEverTask = taskDatabase.taskDao().getFirstEverTask();
-                if (firstEverTask == null) {
-                    streak = 0; //if there are no tasks at all ever, then the streak is 0
-                } else { //day difference between the first ever (completed) task and today is the streak
-                    streak = (int)DAYS.between(firstEverTask.getDate(), LocalDate.now());
-                }
-            }
-
-            //if today is all completed, add a streak
             List<Task> todayTasks = taskDatabase.taskDao().getTodayTasks(Converters.dateToTimestamp(LocalDate.now()));
-            //List<Task> todayTasks = taskDatabase.taskDao().getTodayTasks();
-            boolean ok = true;
-            if (todayTasks.size() > 0) { //if there are tasks today
-                for (Task task : todayTasks) {
-                    if (task.getComplete() == false) {
-                        ok = false;
-                    }
-                }
-                if (ok == true) { //increase the streak by 1 if all the tasks are done
-                    streak = streak+1;
-                }
-            } else { //if there are no tasks today
-                if (streak != 0) { //only increase the streak by 1 if the streak isn't 0
-                    streak = streak+1;
-                }
-            }
-            //------------------
-            final String finalStreak = String.valueOf(streak);
-
+            final boolean allCompleted = allTasksCompletedTodayRequireAtLeastOne(todayTasks);
+            finalEditor1.putBoolean(getString(R.string.increase_streak), allCompleted);
+            finalEditor1.apply();
             handler.post(() -> {
                 TextView streakCounter = findViewById(R.id.streakCounter);
-                streakCounter.setText(finalStreak);
+                int streak = sharedPreferences.getInt(getString(R.string.streak), 0);
+                if (allCompleted == true) {
+                    streak = streak+1;
+                }
+                streakCounter.setText(String.valueOf(streak));
             });
         });
 
     }
+
+    public boolean allTasksCompletedTodayRequireAtLeastOne(List<Task> todayTasks) {
+        //List<Task> todayTasks = taskDatabase.taskDao().getTodayTasks();
+        if (todayTasks.size() > 0) { //if there are tasks today
+            for (Task task : todayTasks) {
+                if (task.getComplete() == false) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
 
 
     /**

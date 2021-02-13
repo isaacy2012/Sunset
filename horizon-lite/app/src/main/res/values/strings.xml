@@ -1,4 +1,7 @@
 <resources>
     <!-- <string name="app_name">horizon-lite</string> -->
     <string name="app_name">Horizon Lite</string>
+    <string name="streak">streak</string>
+    <string name="last_updated">lastUpdated</string>
+    <string name="increase_streak">increaseStreak</string>
 </resources>

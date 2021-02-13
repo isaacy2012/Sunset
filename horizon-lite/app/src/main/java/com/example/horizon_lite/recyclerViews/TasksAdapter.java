@@ -1,12 +1,15 @@
 package com.example.horizon_lite.recyclerViews;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.horizon_lite.R;
@@ -84,10 +87,13 @@ public class TasksAdapter extends
 //                    System.out.println(printOut.toString());
                     //ROOM Threads
                     ExecutorService executor = Executors.newSingleThreadExecutor();
+                    Handler handler = new Handler(Looper.getMainLooper());
                     executor.execute(() -> {
                         //Background work here
                         MainActivity.taskDatabase.taskDao().update(task);
-                        ((MainActivity)context).updateStreak();
+                        handler.post(() -> {
+                            ((MainActivity)context).updateStreak();
+                        });
                     });
                 }
             });
