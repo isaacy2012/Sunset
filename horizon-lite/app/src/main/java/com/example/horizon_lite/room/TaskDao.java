@@ -67,7 +67,7 @@ public interface TaskDao {
      * @return all the tasks in the database as a List
      */
     @Query("SELECT * FROM tasks WHERE date(date) = date(:today)")
-    public List<Task> getTodayTasks( String today);
+    public List<Task> getDayTasks( String today);
 
     /**
      * Returns all uncompleted Tasks as a List

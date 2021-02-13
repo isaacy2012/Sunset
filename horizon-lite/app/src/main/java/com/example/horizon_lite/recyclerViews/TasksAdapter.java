@@ -1,12 +1,15 @@
 package com.example.horizon_lite.recyclerViews;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.horizon_lite.R;
@@ -14,6 +17,7 @@ import com.example.horizon_lite.Task;
 import com.example.horizon_lite.activities.MainActivity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -84,10 +88,13 @@ public class TasksAdapter extends
 //                    System.out.println(printOut.toString());
                     //ROOM Threads
                     ExecutorService executor = Executors.newSingleThreadExecutor();
+                    Handler handler = new Handler(Looper.getMainLooper());
                     executor.execute(() -> {
                         //Background work here
                         MainActivity.taskDatabase.taskDao().update(task);
-                        ((MainActivity)context).updateStreak();
+                        handler.post(() -> {
+                            ((MainActivity)context).updateStreak();
+                        });
                     });
                 }
             });
@@ -111,6 +118,17 @@ public class TasksAdapter extends
      */
     public void addTask(int position, Task task) {
         tasks.add(position, task);
+    }
+
+    public void removeAllChecked() {
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            if (task.getComplete() == true) {
+                tasks.remove(i);
+                notifyItemRemoved(i);
+                i = i-1;
+            }
+        }
     }
 
     // Usually involves inflating a layout from XML and returning the holder
