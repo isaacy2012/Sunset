@@ -1,7 +1,7 @@
 # Horizon Lite 
 ### Horizon Lite is a simple streak-based task manager for Android
-<img src="readmeImages/main_activity.png" width="50" height="50">
-![adding](readmeImages/adding.png)
+<img src="readmeImages/main_activity.png" width="540" height="1080">
+<img src="readmeImages/adding.png" width="540" height="1080">
 
 ## Features
 - Adding and checking off tasks
