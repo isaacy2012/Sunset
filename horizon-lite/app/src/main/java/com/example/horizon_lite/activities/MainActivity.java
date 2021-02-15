@@ -9,12 +9,12 @@ import androidx.room.Room;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -44,6 +44,8 @@ import static java.time.temporal.ChronoUnit.DAYS;
 
 public class MainActivity extends AppCompatActivity {
 
+    int ANIMATION_DURATION = 0;
+
     //private fields for the Dao and the Database
     public static TaskDatabase taskDatabase;
     RecyclerView rvTasks;
@@ -64,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //constants
+        ANIMATION_DURATION = getResources().getInteger(R.integer.animation_duration);
 
         //streak
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
@@ -230,10 +235,26 @@ public class MainActivity extends AppCompatActivity {
                 //set the color
                 int color = ColorUtils.HSLToColor(new float[]{ 0.25f, sat, 0.45f });
                 //set both the streakImage and the streakCounter colors
-                streakImage.setColorFilter(color);
-                streakCounter.setTextColor(color);
+                animateStreakToColor(color);
             });
         });
+    }
+
+    /**
+     * Animates the color of the streakImage and streakCounter from the current color of the streakCounter to the specified color
+     * @param colorTo the new color for the streakImage and streakCounter to be
+     */
+    public void animateStreakToColor( int colorTo) {
+        TextView streakCounter = findViewById(R.id.streakCounter);
+        ImageView streakImage = findViewById(R.id.streakImage);
+        int colorFrom = streakCounter.getCurrentTextColor();
+        ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
+        colorAnimation.addUpdateListener(animator -> {
+            streakCounter.setTextColor((Integer)animator.getAnimatedValue());
+            streakImage.setColorFilter((Integer)animator.getAnimatedValue());
+        });
+        colorAnimation.setDuration(ANIMATION_DURATION);
+        colorAnimation.start();
     }
 
     /**

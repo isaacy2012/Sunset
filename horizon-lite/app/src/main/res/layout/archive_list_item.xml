@@ -17,7 +17,11 @@
     <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:id="@+id/archiveLinearLayout"
+            android:animateLayoutChanges="true"
+            android:layout_marginRight="4dp">
 
 
         <TextView
@@ -28,21 +32,31 @@
                 android:fontFamily="sans-serif-medium"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textSize="18sp"
-                android:layout_marginVertical="12dp" />
+                android:layout_marginVertical="0dp"
+                android:baselineAligned="false" />
 
         <ImageButton
-                android:layout_width="27dp"
-                android:layout_height="27dp"
+                android:layout_width="30dp"
+                android:layout_height="48dp"
                 android:id="@+id/replayButton"
                 android:layout_weight="0"
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
                 android:src="@drawable/ic_baseline_replay_24"
                 android:background="?android:selectableItemBackgroundBorderless"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:layout_marginVertical="10dp"
-                android:layout_marginRight="12dp" />
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:layout_marginRight="4dp" />
+
+        <CheckBox
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/deleteCheckBox"
+                android:paddingLeft="16dp"
+                android:paddingRight="4dp"
+                android:layout_weight="0"
+                android:onClick="checkBoxClicked"
+                android:visibility="gone" />
 
     </LinearLayout>
 
