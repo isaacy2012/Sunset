@@ -1,8 +1,6 @@
-package com.example.horizon_lite.recyclerViews;
+package com.innerCat.horizon_lite.recyclerViews;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,17 +10,13 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.horizon_lite.R;
-import com.example.horizon_lite.Task;
-import com.example.horizon_lite.activities.ArchiveActivity;
-import com.example.horizon_lite.activities.MainActivity;
+import com.innerCat.horizon_lite.R;
+import com.innerCat.horizon_lite.Task;
+import com.innerCat.horizon_lite.activities.ArchiveActivity;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 // Create the basic adapter extending from RecyclerView.Adapter
 // Note that we specify the custom ViewHolder which gives us access to our views
@@ -89,9 +83,9 @@ public class ArchiveTasksAdapter extends
     /**
      * Enables deletion of all the tasks
      */
-    public void toggleDelete(Context context) {
+    public void checkDelete(boolean deleteMode) {
         for (ViewHolder viewHolder : mBoundViewHolders) {
-            if (((ArchiveActivity)context).getDeleteMode() == true) {
+            if (deleteMode == true) {
                 viewHolder.deleteCheckBox.setVisibility(View.VISIBLE);
                 viewHolder.deleteCheckBox.setChecked(false);
             } else {

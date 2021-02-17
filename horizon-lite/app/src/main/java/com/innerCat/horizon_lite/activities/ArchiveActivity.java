@@ -1,29 +1,32 @@
-package com.example.horizon_lite.activities;
+package com.innerCat.horizon_lite.activities;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageButton;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
-import com.example.horizon_lite.R;
-import com.example.horizon_lite.Task;
-import com.example.horizon_lite.recyclerViews.ArchiveTasksAdapter;
-import com.example.horizon_lite.room.TaskDatabase;
+import com.innerCat.horizon_lite.R;
+import com.innerCat.horizon_lite.Task;
+import com.innerCat.horizon_lite.recyclerViews.ArchiveTasksAdapter;
+import com.innerCat.horizon_lite.room.Converters;
+import com.innerCat.horizon_lite.room.TaskDatabase;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -34,9 +37,10 @@ public class ArchiveActivity extends AppCompatActivity {
     static TaskDatabase taskDatabase;
     RecyclerView rvTasks;
     ArchiveTasksAdapter adapter;
-    ArrayList<String> names = new ArrayList<String>();
+    ArrayList<String> namesToReplay = new ArrayList<String>();
     ArrayList<Task> deleteTasks = new ArrayList<Task>();
     ExtendedFloatingActionButton deleteFAB;
+    ImageButton deleteButton;
     boolean deleteMode = false;
     boolean selectAllMode = false;
 
@@ -48,9 +52,12 @@ public class ArchiveActivity extends AppCompatActivity {
 
         // Lookup the recyclerview in activity layout
         rvTasks = (RecyclerView) findViewById(R.id.rvTasks);
+        rvTasks.setNestedScrollingEnabled(false);
 
         //get the FAB
         deleteFAB = findViewById(R.id.deleteFAB);
+        //get the deleteButton
+        deleteButton = findViewById(R.id.deleteButton);
 
         //initialise the database
         taskDatabase = Room.databaseBuilder(getApplicationContext(),
@@ -83,12 +90,14 @@ public class ArchiveActivity extends AppCompatActivity {
      * @param view
      */
     public void onDeleteButton( View view) {
+        if (adapter.getTasks().isEmpty() == true) {
+            return;
+        }
         deleteTasks = new ArrayList<Task>();
         //toggle deleteMode
         deleteMode = !deleteMode;
         checkDelete();
-        adapter.toggleDelete(this);
-        checkFAB();
+        checkFAB(false);
     }
 
     public void onDeleteFAB(View view) {
@@ -96,58 +105,103 @@ public class ArchiveActivity extends AppCompatActivity {
             selectAllMode = true;
             adapter.selectAll(this);
         } else {
-            for (Task task : deleteTasks) {
-                //ROOM Threads
-                ExecutorService executor = Executors.newSingleThreadExecutor();
-                Handler handler = new Handler(Looper.getMainLooper());
-                ArrayList<Task> tasks = new ArrayList<Task>();
-                executor.execute(() -> {
-                    //Background work here
-                    taskDatabase.taskDao().removeById(task.getId());
-                    handler.post(() -> {
-                        adapter.notifyItemRemoved(adapter.getTasks().indexOf(task));
-                        adapter.getTasks().remove(task);
+            // Use the Builder class for convenient dialog construction
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
+            LayoutInflater inflater = LayoutInflater.from(this);
+
+            builder.setMessage("Are you sure you wish to delete " + deleteTasks.size() + " " + (deleteTasks.size() > 1 ? "tasks" : "task") + "?")
+                    .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            //yes
+                            //ROOM Threads
+                            deleteMode = false;
+                            selectAllMode = false;
+                            rvTasks.setPadding(0, 0, 0, Converters.fromDpToPixels(16, getResources()));
+                            deleteFAB.setVisibility(View.INVISIBLE);
+                            checkDelete();
+                            ExecutorService executor = Executors.newSingleThreadExecutor();
+                            Handler handler = new Handler(Looper.getMainLooper());
+                            ArrayList<Task> tasks = new ArrayList<Task>();
+                            executor.execute(() -> {
+                                //Background work here
+                                for (Task task : deleteTasks) {
+                                    taskDatabase.taskDao().removeById(task.getId());
+                                }
+                                handler.post(() -> {
+                                    for (Task task : deleteTasks) {
+                                        adapter.notifyItemRemoved(adapter.getTasks().indexOf(task));
+                                        adapter.getTasks().remove(task);
+                                    }
+                                });
+                            });
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User cancelled the dialog
+                        }
                     });
-                });
-            }
-            deleteMode = false;
-            selectAllMode = false;
-            deleteFAB.setVisibility(View.INVISIBLE);
+            AlertDialog dialog = builder.create();
+            dialog.getWindow().setDimAmount(0.0f);
+            dialog.show();
         }
-        checkFAB();
+        checkFAB(false);
     }
 
     /**
      * Check the status of the extended FAB
      */
-    public void checkFAB() {
+    public void checkFAB(boolean back) {
         if (deleteTasks.size() != 0) {
             if (deleteFAB.getText().equals("DELETE") == false) {
                 deleteFAB.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_baseline_delete_24));
                 deleteFAB.setText("DELETE");
             }
+        } else {
+            if (back == true) {
+                if (deleteFAB.getText().equals("SELECT ALL") == false) {
+                    deleteFAB.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_baseline_delete_24));
+                    deleteFAB.setText("SELECT ALL");
+                }
+            }
         }
     }
 
+    /**
+     * Check the status of the UI items with respect to the deleteMode
+     */
     public void checkDelete() {
+        adapter.checkDelete(deleteMode);
         if (deleteMode == true) {
+            rvTasks.setPadding(0, 0, 0, Converters.fromDpToPixels(68, getResources()));
             deleteFAB.setVisibility(View.VISIBLE);
             deleteFAB.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_baseline_check_24));
             deleteFAB.setText("SELECT ALL");
+            deleteButton.setImageResource(R.drawable.ic_baseline_close_24);
         } else {
+            rvTasks.setPadding(0, 0, 0, Converters.fromDpToPixels(16, getResources()));
             deleteFAB.setVisibility(View.INVISIBLE);
             selectAllMode = false;
+            deleteButton.setImageResource(R.drawable.ic_baseline_delete_24);
         }
     }
 
+    /**
+     * Add a task to the deletion list
+     * @param task the task to add
+     */
     public void addDeleteTask(Task task) {
         deleteTasks.add(task);
-        checkFAB();
+        checkFAB(true);
     }
 
+    /**
+     * Remove a task to the deletion list
+     * @param task the task to remove
+     */
     public void removeDeleteTask(Task task) {
         deleteTasks.remove(task);
-        checkFAB();
+        checkFAB(true);
     }
 
     /**
@@ -155,14 +209,14 @@ public class ArchiveActivity extends AppCompatActivity {
      * @param name the name to add
      */
     public void addName(String name) {
-        names.add(name);
+        namesToReplay.add(name);
     }
 
     @Override
     public void onBackPressed() {
-        String[] nameArray = new String[names.size()];
+        String[] nameArray = new String[namesToReplay.size()];
         //ensure names is converted to array of Strings
-        nameArray = names.toArray(nameArray);
+        nameArray = namesToReplay.toArray(nameArray);
         Intent intent = new Intent();
         //pass back the names to the MainActivity
         intent.putExtra("names", nameArray);
@@ -179,16 +233,5 @@ public class ArchiveActivity extends AppCompatActivity {
     public boolean getSelectAllMode() {
         return this.selectAllMode;
     }
-
-    public TaskDatabase getTaskDatabase() {
-        return this.taskDatabase;
-    }
-
-    public RecyclerView getRecyclerView() {
-        return this.rvTasks;
-    }
-
-
-
 
 }

@@ -1,9 +1,9 @@
-package com.example.horizon_lite;
+package com.innerCat.horizon_lite;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-import com.example.horizon_lite.room.Converters;
+import com.innerCat.horizon_lite.room.Converters;
 
 import java.time.LocalDate;
 

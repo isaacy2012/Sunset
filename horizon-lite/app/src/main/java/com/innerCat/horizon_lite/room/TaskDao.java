@@ -1,4 +1,4 @@
-package com.example.horizon_lite.room;
+package com.innerCat.horizon_lite.room;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
@@ -6,9 +6,8 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
-import com.example.horizon_lite.Task;
+import com.innerCat.horizon_lite.Task;
 
-import java.time.LocalDate;
 import java.util.List;
 
 
