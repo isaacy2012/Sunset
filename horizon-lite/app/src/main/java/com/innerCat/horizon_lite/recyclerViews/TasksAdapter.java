@@ -54,7 +54,11 @@ public class TasksAdapter extends
                 task.toggleComplete();
                 int currentPosition = tasks.indexOf(task);
                 if (task.getComplete() == true) {
-                    ((MainActivity)context).todayComplete();
+                    if (task.isLate() == false) {
+                        ((MainActivity) context).todayComplete();
+                    }
+
+                    //UI moving
                     boolean found = false;
                     while ( found == false ) {
                         for (int i = currentPosition; i < tasks.size()-1  ; i++) {
