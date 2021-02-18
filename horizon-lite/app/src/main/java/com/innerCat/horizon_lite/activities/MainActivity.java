@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView rvTasks;
     TasksAdapter adapter;
     SharedPreferences sharedPreferences;
+    int defaultColor;
 
     private final int LIST_TASK_REQUEST = 1;
 
@@ -75,6 +77,10 @@ public class MainActivity extends AppCompatActivity {
 
         //streak
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+
+        //get the default text color
+        TextView messageTextView = findViewById(R.id.messageTextView);
+        defaultColor = messageTextView.getCurrentTextColor();
 
         //initialise the database
         taskDatabase = Room.databaseBuilder(getApplicationContext(),
@@ -188,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
             handler.post(() -> {
                 int textAnimationDuration = 400;
                 TextView messageTextView = findViewById(R.id.messageTextView);
-                int colorFrom = -1979711488; //text color
+                int colorFrom = defaultColor;
                 String messageText;
                 if (numTasks == 0) {
                     if (sharedPreferences.getBoolean(getString(R.string.today_at_least_one_completed), false) == true) {
@@ -328,21 +334,29 @@ public class MainActivity extends AppCompatActivity {
             //--------------------------------
             handler.post(() -> {
                 TextView streakCounter = findViewById(R.id.streakCounter);
-                streakCounter.setText(String.valueOf(finalStreak));
-                ImageView streakImage = findViewById(R.id.streakImage);
+                String oldStreakText = streakCounter.getText().toString();
+                int oldStreak = -1;
+                try {
+                    oldStreak = Integer.parseInt(oldStreakText);
+                } catch (NumberFormatException ignored) {}
 
-                //work out the saturation
-                float sat = 0; //if no streak, no saturation
-                //otherwise, start from 50%
-                if (finalStreak > 0) {
-                    sat = (float) (0.5 + (0.5 * (float) finalStreak / 100f));
+                streakCounter.setText(String.valueOf(finalStreak));
+
+                //if the streak has changed from 0 to >0 or >0 to 0
+                if (((oldStreak > 0) == (finalStreak > 0)) == false) {
+                    //work out the saturation
+                    float sat = 0; //if no streak, no saturation
+                    //otherwise, start from 50%
+                    if (finalStreak > 0) {
+                        sat = (float) (0.5 + (0.5 * (float) finalStreak / 100f));
+                    }
+                    //bounding
+                    if (sat > 1) { sat = 1; }
+                    //set the color
+                    int color = ColorUtils.HSLToColor(new float[]{ 0.25f, sat, 0.45f });
+                    //set both the streakImage and the streakCounter colors
+                    animateStreakToColor(color);
                 }
-                //bounding
-                if (sat > 1) { sat = 1; }
-                //set the color
-                int color = ColorUtils.HSLToColor(new float[]{ 0.25f, sat, 0.45f });
-                //set both the streakImage and the streakCounter colors
-                animateStreakToColor(color);
             });
         });
     }
@@ -354,7 +368,7 @@ public class MainActivity extends AppCompatActivity {
     public void animateStreakToColor( int colorTo) {
         TextView streakCounter = findViewById(R.id.streakCounter);
         ImageView streakImage = findViewById(R.id.streakImage);
-        int colorFrom = streakCounter.getCurrentTextColor();
+        int colorFrom = defaultColor;
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
         colorAnimation.addUpdateListener(animator -> {
             streakCounter.setTextColor((Integer)animator.getAnimatedValue());
