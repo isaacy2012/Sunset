@@ -1,4 +1,4 @@
-package com.example.horizon_lite.recyclerViews;
+package com.innerCat.horizon_lite.recyclerViews;
 
 import android.content.Context;
 import android.os.Handler;
@@ -9,15 +9,13 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.horizon_lite.R;
-import com.example.horizon_lite.Task;
-import com.example.horizon_lite.activities.MainActivity;
+import com.innerCat.horizon_lite.R;
+import com.innerCat.horizon_lite.Task;
+import com.innerCat.horizon_lite.activities.MainActivity;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -52,51 +50,53 @@ public class TasksAdapter extends
             bulletPoint = (TextView) itemView.findViewById(R.id.bulletPoint);
             nameTextView = (TextView) itemView.findViewById(R.id.nameView);
             checkBox = (CheckBox) itemView.findViewById(R.id.checkBox);
-            checkBox.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    task.toggleComplete();
-                    int currentPosition = tasks.indexOf(task);
-                    if (task.getComplete() == true) {
-                        boolean found = false;
-                        while ( found == false ) {
-                            for (int i = currentPosition; i < tasks.size()-1  ; i++) {
-                                if (tasks.get(i+1).getComplete() == false) {
-                                    Collections.swap(tasks, i, i+1);
-                                } else {
-                                    found = true;
-                                    break;
-                                }
-                            }
-                            if (found == false) {
-                                //reached end
+            checkBox.setOnClickListener(v -> {
+                task.toggleComplete();
+                int currentPosition = tasks.indexOf(task);
+                if (task.getComplete() == true) {
+                    if (task.isLate() == false) {
+                        ((MainActivity) context).todayComplete();
+                    }
+
+                    //UI moving
+                    boolean found = false;
+                    while ( found == false ) {
+                        for (int i = currentPosition; i < tasks.size()-1  ; i++) {
+                            if (tasks.get(i+1).getComplete() == false) {
+                                Collections.swap(tasks, i, i+1);
+                            } else {
                                 found = true;
+                                break;
                             }
                         }
-                        int newPosition = tasks.indexOf(task);
-                        notifyItemMoved(currentPosition, newPosition);
-                    } else {
-                        Task task = tasks.get(currentPosition);
-                        tasks.remove(currentPosition);
-                        tasks.add(0, task);
-                        notifyItemMoved(currentPosition, 0);
+                        if (found == false) {
+                            //reached end
+                            found = true;
+                        }
                     }
+                    int newPosition = tasks.indexOf(task);
+                    notifyItemMoved(currentPosition, newPosition);
+                } else {
+                    Task task = tasks.get(currentPosition);
+                    tasks.remove(currentPosition);
+                    tasks.add(0, task);
+                    notifyItemMoved(currentPosition, 0);
+                }
 //                    StringBuilder printOut = new StringBuilder();
 //                    for (Task task : tasks) {
 //                        printOut.append(task.getName()).append(", ");
 //                    }
 //                    System.out.println(printOut.toString());
-                    //ROOM Threads
-                    ExecutorService executor = Executors.newSingleThreadExecutor();
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    executor.execute(() -> {
-                        //Background work here
-                        MainActivity.taskDatabase.taskDao().update(task);
-                        handler.post(() -> {
-                            ((MainActivity)context).updateStreak();
-                        });
+                //ROOM Threads
+                ExecutorService executor = Executors.newSingleThreadExecutor();
+                Handler handler = new Handler(Looper.getMainLooper());
+                executor.execute(() -> {
+                    //Background work here
+                    MainActivity.taskDatabase.taskDao().update(task);
+                    handler.post(() -> {
+                        ((MainActivity)context).updateStreak();
                     });
-                }
+                });
             });
         }
     }

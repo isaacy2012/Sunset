@@ -1,4 +1,4 @@
-package com.example.horizon_lite;
+package com.innerCat.horizon_lite;
 
 import android.content.Context;
 

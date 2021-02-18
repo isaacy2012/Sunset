@@ -1,19 +1,22 @@
-package com.example.horizon_lite.recyclerViews;
+package com.innerCat.horizon_lite.recyclerViews;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.horizon_lite.R;
-import com.example.horizon_lite.Task;
-import com.example.horizon_lite.activities.ArchiveActivity;
+import com.innerCat.horizon_lite.R;
+import com.innerCat.horizon_lite.Task;
+import com.innerCat.horizon_lite.activities.ArchiveActivity;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 // Create the basic adapter extending from RecyclerView.Adapter
 // Note that we specify the custom ViewHolder which gives us access to our views
@@ -21,6 +24,7 @@ public class ArchiveTasksAdapter extends
         RecyclerView.Adapter<ArchiveTasksAdapter.ViewHolder> {
 
     private List<Task> archivedTasks;
+    private Set<ViewHolder> mBoundViewHolders = new HashSet<>();
 
     // Provide a direct reference to each of the views within a data item
     // Used to cache the views within the item layout for fast access
@@ -28,8 +32,10 @@ public class ArchiveTasksAdapter extends
         // Your holder should contain a member variable
         // for any view that will be set as you render a row
         public TextView nameTextView;
-        public ImageButton imageButton;
+        public CheckBox deleteCheckBox;
+        public ImageButton replayButton;
         public Task task;
+        public Context context;
 
         // We also create a constructor that accepts the entire item row
         // and does the view lookups to find each subview
@@ -37,10 +43,20 @@ public class ArchiveTasksAdapter extends
             // Stores the itemView in a public final member variable that can be used
             // to access the context from any ViewHolder instance.
             super(itemView);
+            this.context = context;
+
 
             nameTextView = (TextView) itemView.findViewById(R.id.nameView);
-            imageButton = (ImageButton) itemView.findViewById(R.id.replayButton);
-            imageButton.setOnClickListener(new View.OnClickListener() {
+            replayButton = (ImageButton) itemView.findViewById(R.id.replayButton);
+            deleteCheckBox = (CheckBox) itemView.findViewById(R.id.deleteCheckBox);
+            deleteCheckBox.setOnClickListener(v -> {
+                if (deleteCheckBox.isChecked() == true) {
+                    ((ArchiveActivity)context).addDeleteTask(task);
+                } else {
+                    ((ArchiveActivity)context).removeDeleteTask(task);
+                }
+            });
+            replayButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     int currentPosition = archivedTasks.indexOf(task);
@@ -50,7 +66,43 @@ public class ArchiveTasksAdapter extends
                 }
             });
         }
+
+        public void updateState() {
+            if (((ArchiveActivity)context).getDeleteMode() == true) {
+                deleteCheckBox.setVisibility(View.VISIBLE);
+                if (((ArchiveActivity)context).getSelectAllMode() == true) {
+                    deleteCheckBox.setChecked(true);
+                    ((ArchiveActivity)context).addDeleteTask(task);
+                }
+            } else {
+                deleteCheckBox.setVisibility(View.GONE);
+            }
+        }
     }
+
+    /**
+     * Enables deletion of all the tasks
+     */
+    public void checkDelete(boolean deleteMode) {
+        for (ViewHolder viewHolder : mBoundViewHolders) {
+            if (deleteMode == true) {
+                viewHolder.deleteCheckBox.setVisibility(View.VISIBLE);
+                viewHolder.deleteCheckBox.setChecked(false);
+            } else {
+                viewHolder.deleteCheckBox.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    public void selectAll(Context context) {
+        for (ViewHolder viewHolder : mBoundViewHolders) {
+            viewHolder.deleteCheckBox.setChecked(true);
+        }
+        for (Task task : archivedTasks) {
+            ((ArchiveActivity)context).addDeleteTask(task);
+        }
+    }
+
 
 
     /**
@@ -93,6 +145,9 @@ public class ArchiveTasksAdapter extends
         // Set item views based on your views and data model
         TextView textView = holder.nameTextView;
         textView.setText(holder.task.getName());
+        mBoundViewHolders.add(holder);
+        holder.updateState();
+
 
     }
 
@@ -100,6 +155,10 @@ public class ArchiveTasksAdapter extends
     @Override
     public int getItemCount() {
         return archivedTasks.size();
+    }
+
+    public List<Task> getTasks() {
+        return this.archivedTasks;
     }
 
 
