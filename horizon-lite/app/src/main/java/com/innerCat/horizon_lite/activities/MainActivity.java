@@ -1,20 +1,13 @@
 package com.innerCat.horizon_lite.activities;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.ColorUtils;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
-import androidx.room.migration.Migration;
-import androidx.sqlite.db.SupportSQLiteDatabase;
-
+import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -25,12 +18,22 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.innerCat.horizon_lite.room.Converters;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.ColorUtils;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.innerCat.horizon_lite.R;
 import com.innerCat.horizon_lite.Task;
-import com.innerCat.horizon_lite.room.TaskDatabase;
 import com.innerCat.horizon_lite.recyclerViews.TasksAdapter;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.innerCat.horizon_lite.room.Converters;
+import com.innerCat.horizon_lite.room.TaskDatabase;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -73,15 +76,22 @@ public class MainActivity extends AppCompatActivity {
         //streak
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
 
-
         //initialise the database
         taskDatabase = Room.databaseBuilder(getApplicationContext(),
                 TaskDatabase.class, "tasks")
                 .fallbackToDestructiveMigration()
                 .build();
 
-        // Lookup the recyclerview in activity layout
-        rvTasks = (RecyclerView) findViewById(R.id.rvTasks);
+        //get the recyclerview in activity layout
+        rvTasks = findViewById(R.id.rvTasks);
+
+        //get the swipeRefreshLayout
+        final SwipeRefreshLayout swipeRefreshLayout= findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            adapter.removeAllChecked();
+            adapter.notifyDataSetChanged();
+            swipeRefreshLayout.setRefreshing(false);
+        });
 
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -163,11 +173,73 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Update the messageTextView
+     */
+    public void updateMessage() {
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            //NB: This is the new thread in which the database stuff happens
+            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasks();
+            final int numTasks = tasks.size();
+            handler.post(() -> {
+                int textAnimationDuration = 400;
+                TextView messageTextView = findViewById(R.id.messageTextView);
+                int colorFrom = -1979711488; //text color
+                String messageText;
+                if (numTasks == 0) {
+                    if (sharedPreferences.getBoolean(getString(R.string.today_at_least_one_completed), false) == true) {
+                        messageText = "Well done! You completed all tasks today";
+                    } else {
+                        messageText = "You have no tasks today";
+                    }
+                } else {
+                    messageText = "You have " + numTasks + " " + (numTasks > 1 ? "tasks" : "task") + " remaining today" ;
+                }
+                if (messageText.equals(messageTextView.getText()) == false) {
+                    messageTextView.setTextColor(Color.TRANSPARENT);
+                    if (messageTextView.getText().equals("")) {
+                        messageTextView.setText(messageText);
+                        ValueAnimator reverseAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), Color.TRANSPARENT, colorFrom);
+                        reverseAnimation.addUpdateListener(animator -> {
+                            messageTextView.setTextColor((Integer) animator.getAnimatedValue());
+                        });
+                        reverseAnimation.setDuration(textAnimationDuration);
+                        reverseAnimation.start();
+                    } else {
+                        AnimatorSet as = new AnimatorSet();
+                        ValueAnimator animationToTransparent = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, Color.TRANSPARENT);
+                        animationToTransparent.addUpdateListener(animator -> {
+                            messageTextView.setTextColor((Integer) animator.getAnimatedValue());
+                        });
+                        animationToTransparent.setDuration(textAnimationDuration);
+                        ValueAnimator reverseAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), Color.TRANSPARENT, colorFrom);
+                        reverseAnimation.addUpdateListener(animator -> {
+                            messageTextView.setTextColor((Integer) animator.getAnimatedValue());
+                        });
+                        reverseAnimation.setDuration(textAnimationDuration);
+                        as.play(animationToTransparent).before(reverseAnimation);
+                        as.start();
+                        final Handler editHandler = new Handler(Looper.getMainLooper());
+                        editHandler.postDelayed(() -> {
+                            messageTextView.setText(messageText);
+                        }, textAnimationDuration);
+                    }
+                }
+            });
+        });
+
+    }
+
     /*
      * Update the streak
      */
     public void updateStreak() {
         //ROOM Threads
+        updateMessage();
         final SharedPreferences.Editor editor = sharedPreferences.edit();
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
@@ -350,9 +422,9 @@ public class MainActivity extends AppCompatActivity {
                 //rvTasks.scheduleLayoutAnimation();
                 rvTasks.scrollToPosition(0);
                 //rvTasks.scheduleLayoutAnimation();
+                updateStreak();
             });
         });
-        updateStreak();
     }
 
     /**
