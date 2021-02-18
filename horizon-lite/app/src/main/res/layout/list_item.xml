@@ -12,12 +12,14 @@
         style="@style/CardView.DayNight"
         app:contentPaddingTop="10dp"
         app:contentPaddingBottom="10dp"
-        android:layout_marginHorizontal="16dp">
+        android:layout_marginHorizontal="16dp"
+        android:foreground="?android:attr/selectableItemBackground">
 
     <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:gravity="center">
 
 
         <TextView
@@ -42,7 +44,9 @@
                 android:layout_weight="1"
                 android:fontFamily="sans-serif-medium"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:layout_marginBottom="4dp"
+                android:layout_marginTop="4dp" />
 
         <CheckBox
                 android:layout_width="40dp"

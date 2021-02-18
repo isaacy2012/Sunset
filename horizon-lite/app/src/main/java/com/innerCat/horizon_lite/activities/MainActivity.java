@@ -313,6 +313,21 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+
+    public void updateTask(Task task, int position) {
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            taskDatabase.taskDao().update(task);
+            handler.post(() -> {
+                //UI Thread work here
+                // Notify the adapter that an item was changed at position
+                adapter.notifyItemChanged(position);
+            });
+        });
+    }
     /**
      * Add a task to the database
      * @param name the name of the task

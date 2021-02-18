@@ -1,16 +1,21 @@
 package com.innerCat.horizon_lite.recyclerViews;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.innerCat.horizon_lite.R;
 import com.innerCat.horizon_lite.Task;
 import com.innerCat.horizon_lite.activities.MainActivity;
@@ -32,13 +37,14 @@ public class TasksAdapter extends
 
     // Provide a direct reference to each of the views within a data item
     // Used to cache the views within the item layout for fast access
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         // Your holder should contain a member variable
         // for any view that will be set as you render a row
         public TextView bulletPoint;
         public TextView nameTextView;
         public CheckBox checkBox;
         public Task task;
+        public Context context;
 
         // We also create a constructor that accepts the entire item row
         // and does the view lookups to find each subview
@@ -98,6 +104,48 @@ public class TasksAdapter extends
                     });
                 });
             });
+
+            //store the context
+            this.context = context;
+            // Attach a click listener to the entire row view
+            itemView.setOnClickListener(this);
+        }
+
+        // Handles the row being being clicked
+        @Override
+        public void onClick(View view) {
+            int position = getAdapterPosition(); // gets item position
+            if (position != RecyclerView.NO_POSITION) { // Check if an item was deleted, but the user clicked it before the UI removed it
+                Task task = tasks.get(position);
+                // We can access the data within the views
+                MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context, R.style.MaterialAlertDialog_Rounded);
+                LayoutInflater inflater = LayoutInflater.from(context);
+                View editTextView = inflater.inflate(R.layout.text_input, null);
+                EditText input = editTextView.findViewById(R.id.editName);
+                input.setText(task.getName());
+                input.requestFocus();
+
+                builder.setMessage("Name")
+                        .setView(editTextView)
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                //get the name of the Task to add
+                                String newName = input.getText().toString();
+                                //add the task
+                                task.setName(newName);
+                                ((MainActivity)context).updateTask(task, position);
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // User cancelled the dialog
+                            }
+                        });
+                AlertDialog dialog = builder.create();
+                dialog.getWindow().setDimAmount(0.0f);
+                dialog.show();
+                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            }
         }
     }
 
