@@ -7,7 +7,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.example.horizon_lite"
+        applicationId "com.innerCat.horizon"
         minSdkVersion 26
         targetSdkVersion 30
         versionCode 1
@@ -30,6 +30,7 @@ android {
 
 dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0'
     def room_version = "2.2.6"
 
     implementation "androidx.room:room-runtime:$room_version"

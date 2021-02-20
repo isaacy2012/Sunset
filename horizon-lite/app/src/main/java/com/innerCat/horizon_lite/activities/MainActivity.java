@@ -205,30 +205,27 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     messageText = "You have " + numTasks + " " + (numTasks > 1 ? "tasks" : "task") + " remaining today" ;
                 }
-                if (messageText.equals(messageTextView.getText()) == false) {
+                if (messageText.equals(messageTextView.getText()) == false) { //if the message is changing, then do the animation
                     messageTextView.setTextColor(Color.TRANSPARENT);
-                    if (messageTextView.getText().equals("")) {
+                    ValueAnimator reverseAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), Color.TRANSPARENT, colorFrom);
+                    reverseAnimation.addUpdateListener(animator -> {
+                        messageTextView.setTextColor((Integer) animator.getAnimatedValue());
+                    });
+                    reverseAnimation.setDuration(textAnimationDuration);
+                    if (messageTextView.getText().equals("")) { //if this is the first time doing the text, don't need to fade out
                         messageTextView.setText(messageText);
-                        ValueAnimator reverseAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), Color.TRANSPARENT, colorFrom);
-                        reverseAnimation.addUpdateListener(animator -> {
-                            messageTextView.setTextColor((Integer) animator.getAnimatedValue());
-                        });
-                        reverseAnimation.setDuration(textAnimationDuration);
                         reverseAnimation.start();
-                    } else {
+                    } else { //otherwise, fade out and fade back in
                         AnimatorSet as = new AnimatorSet();
                         ValueAnimator animationToTransparent = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, Color.TRANSPARENT);
                         animationToTransparent.addUpdateListener(animator -> {
                             messageTextView.setTextColor((Integer) animator.getAnimatedValue());
                         });
                         animationToTransparent.setDuration(textAnimationDuration);
-                        ValueAnimator reverseAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), Color.TRANSPARENT, colorFrom);
-                        reverseAnimation.addUpdateListener(animator -> {
-                            messageTextView.setTextColor((Integer) animator.getAnimatedValue());
-                        });
-                        reverseAnimation.setDuration(textAnimationDuration);
                         as.play(animationToTransparent).before(reverseAnimation);
                         as.start();
+
+                        //delay the change of the messageText until the animation is half-complete and the text is fully faded out
                         final Handler editHandler = new Handler(Looper.getMainLooper());
                         editHandler.postDelayed(() -> {
                             messageTextView.setText(messageText);
@@ -400,6 +397,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Update an existing task in the database
+     * @param task the task to change
+     * @param position its position in the RecyclerView
+     */
     public void updateTask(Task task, int position) {
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -414,6 +416,7 @@ public class MainActivity extends AppCompatActivity {
             });
         });
     }
+
     /**
      * Add a task to the database
      * @param name the name of the task

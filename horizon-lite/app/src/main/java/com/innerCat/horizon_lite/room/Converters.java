@@ -22,11 +22,16 @@ public class Converters {
         return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
+    /**
+     * Converts dp to pixels. Used for setting padding programmatically and responsively
+     * @param dp the dp
+     * @param r resources
+     * @return the number of pixels
+     */
     public static int fromDpToPixels(int dp, Resources r) {
-        float dip = dp;
         float px = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
-                dip,
+                (float) dp,
                 r.getDisplayMetrics()
         );
         return (int)px;

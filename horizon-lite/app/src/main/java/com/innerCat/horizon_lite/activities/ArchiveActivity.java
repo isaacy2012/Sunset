@@ -100,11 +100,15 @@ public class ArchiveActivity extends AppCompatActivity {
         checkFAB(false);
     }
 
+    /**
+     * When the deleteFAB is pressed
+     * @param view
+     */
     public void onDeleteFAB(View view) {
-        if (deleteTasks.size() == 0) {
+        if (deleteTasks.size() == 0) { //if there are no items in the deleteTasks list then the deleteFAB acts as a 'select all' button
             selectAllMode = true;
             adapter.selectAll(this);
-        } else {
+        } else { //otherwise, delete all the items in the deleteTasks list
             // Use the Builder class for convenient dialog construction
             MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
             LayoutInflater inflater = LayoutInflater.from(this);
@@ -112,16 +116,15 @@ public class ArchiveActivity extends AppCompatActivity {
             builder.setMessage("Are you sure you wish to delete " + deleteTasks.size() + " " + (deleteTasks.size() > 1 ? "tasks" : "task") + "?")
                     .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            //yes
-                            //ROOM Threads
                             deleteMode = false;
                             selectAllMode = false;
                             rvTasks.setPadding(0, 0, 0, Converters.fromDpToPixels(16, getResources()));
                             deleteFAB.setVisibility(View.INVISIBLE);
                             checkDelete();
+
+                            //ROOM Threads
                             ExecutorService executor = Executors.newSingleThreadExecutor();
                             Handler handler = new Handler(Looper.getMainLooper());
-                            ArrayList<Task> tasks = new ArrayList<Task>();
                             executor.execute(() -> {
                                 //Background work here
                                 for (Task task : deleteTasks) {
@@ -138,7 +141,7 @@ public class ArchiveActivity extends AppCompatActivity {
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            // User cancelled the dialog
+                            // cancelled
                         }
                     });
             AlertDialog dialog = builder.create();
@@ -213,6 +216,9 @@ public class ArchiveActivity extends AppCompatActivity {
     }
 
     @Override
+    /**
+     * When the hardware/software back button is pressed
+     */
     public void onBackPressed() {
         String[] nameArray = new String[namesToReplay.size()];
         //ensure names is converted to array of Strings

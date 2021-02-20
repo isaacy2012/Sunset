@@ -67,6 +67,9 @@ public class ArchiveTasksAdapter extends
             });
         }
 
+        /**
+         * Update the state of the checkboxes in the recyclerview wrt the modes in ArchiveActivity
+         */
         public void updateState() {
             if (((ArchiveActivity)context).getDeleteMode() == true) {
                 deleteCheckBox.setVisibility(View.VISIBLE);
@@ -94,6 +97,10 @@ public class ArchiveTasksAdapter extends
         }
     }
 
+    /**
+     * Select all the items in the RecyclerView
+     * @param context the context (ArchiveActivity instance)
+     */
     public void selectAll(Context context) {
         for (ViewHolder viewHolder : mBoundViewHolders) {
             viewHolder.deleteCheckBox.setChecked(true);

@@ -88,11 +88,7 @@ public class TasksAdapter extends
                     tasks.add(0, task);
                     notifyItemMoved(currentPosition, 0);
                 }
-//                    StringBuilder printOut = new StringBuilder();
-//                    for (Task task : tasks) {
-//                        printOut.append(task.getName()).append(", ");
-//                    }
-//                    System.out.println(printOut.toString());
+
                 //ROOM Threads
                 ExecutorService executor = Executors.newSingleThreadExecutor();
                 Handler handler = new Handler(Looper.getMainLooper());
@@ -168,6 +164,9 @@ public class TasksAdapter extends
         tasks.add(position, task);
     }
 
+    /**
+     * Remove all the checked items in the taskAdapter
+     */
     public void removeAllChecked() {
         for (int i = 0; i < tasks.size(); i++) {
             Task task = tasks.get(i);
