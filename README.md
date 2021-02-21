@@ -28,6 +28,6 @@ Want to do something every day? Go to the archive page and click the replay icon
 
 
 <p float="left">
-  <img src="google_play_assets/PNG/Left.png"  width="360" height="720">
-  <img src="google_play_assets/PNG/Right.png"  width="360" height="720">
+  <img src="google_play_assets/PNG/left.png"  width="360" height="720">
+  <img src="google_play_assets/PNG/right.png"  width="360" height="720">
  </p>
