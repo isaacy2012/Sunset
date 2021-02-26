@@ -29,6 +29,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.innerCat.sunrise.HomeWidget;
 import com.innerCat.sunrise.R;
 import com.innerCat.sunrise.Task;
 import com.innerCat.sunrise.recyclerViews.TasksAdapter;

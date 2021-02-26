@@ -5,7 +5,7 @@
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
-        app:cardCornerRadius="3dp"
+        app:cardCornerRadius="5dp"
         app:cardUseCompatPadding="true"
         app:contentPaddingLeft="10dp"
         app:contentPaddingRight="0dp"

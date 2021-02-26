@@ -6,4 +6,6 @@
     <string name="increase_streak">increaseStreak</string>
     <string name="streak_task_date">"streakTaskDate"</string>
     <string name="today_at_least_one_completed">"todayAtLeastOneCompleted"</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 </resources>
