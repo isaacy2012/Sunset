@@ -136,7 +136,7 @@ public class ArchiveTasksAdapter extends
         LayoutInflater inflater = LayoutInflater.from(context);
 
         // Inflate the custom layout
-        View taskView = inflater.inflate(R.layout.archive_list_item, parent, false);
+        View taskView = inflater.inflate(R.layout.list_item_archive, parent, false);
 
         // Return a new holder instance
         ViewHolder viewHolder = new ViewHolder(taskView, context);

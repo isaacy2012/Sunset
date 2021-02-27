@@ -3,6 +3,8 @@ package com.innerCat.sunrise.activities;
 import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -29,7 +31,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.innerCat.sunrise.HomeWidget;
+import com.innerCat.sunrise.widgets.HomeWidgetProvider;
 import com.innerCat.sunrise.R;
 import com.innerCat.sunrise.Task;
 import com.innerCat.sunrise.recyclerViews.TasksAdapter;
@@ -132,6 +134,19 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         updateStreak();
+    }
+
+    /**
+     * Update the widgets
+     */
+    public void updateWidgets() {
+        Intent intent = new Intent(this, HomeWidgetProvider.class);
+        //update intent
+        intent.setAction("android.appwidget.action.APPWIDGET_UPDATE");
+        //ids of widgets
+        int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), HomeWidgetProvider.class));;
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
+        sendBroadcast(intent);
     }
 
 
@@ -243,6 +258,7 @@ public class MainActivity extends AppCompatActivity {
     public void updateStreak() {
         //ROOM Threads
         updateMessage();
+        updateWidgets();
         final SharedPreferences.Editor editor = sharedPreferences.edit();
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());

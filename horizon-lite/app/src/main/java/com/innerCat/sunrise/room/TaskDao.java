@@ -76,6 +76,13 @@ public interface TaskDao {
     public List<Task> getAllUncompletedTasks();
 
     /**
+     * Returns all uncompleted Tasks as a List
+     * @return all the uncompleted Tasks in the database as a List
+     */
+    @Query("SELECT COUNT(*) FROM tasks WHERE complete = 0")
+    public int getNumberOfAllUncompletedTasks();
+
+    /**
      * Returns all completed Tasks as a List
      * @return all the completed Tasks in the database as a List
      */

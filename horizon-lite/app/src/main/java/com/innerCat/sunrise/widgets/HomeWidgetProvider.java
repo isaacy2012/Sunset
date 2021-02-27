@@ -1,29 +1,39 @@
-package com.innerCat.sunrise;
+package com.innerCat.sunrise.widgets;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.RemoteViews;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.room.Room;
 
+import com.innerCat.sunrise.R;
+import com.innerCat.sunrise.Task;
 import com.innerCat.sunrise.activities.MainActivity;
+import com.innerCat.sunrise.recyclerViews.TasksAdapter;
 import com.innerCat.sunrise.room.TaskDatabase;
 
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static java.time.temporal.ChronoUnit.DAYS;
+
 /**
  * Implementation of App Widget functionality.
  */
-public class HomeWidget extends AppWidgetProvider {
+public class HomeWidgetProvider extends AppWidgetProvider {
 
-    public static TaskDatabase taskDatabase;
+    static TaskDatabase taskDatabase;
 
     static void updateAppWidget( Context context, AppWidgetManager appWidgetManager,
                                  int appWidgetId ) {
@@ -32,48 +42,42 @@ public class HomeWidget extends AppWidgetProvider {
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
         // Get the layout for the App Widget and attach an on-click listener
-        // to the button
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.home_widget);
+        setRemoteAdapter(context, views);
         views.setOnClickPendingIntent(R.id.homeWidgetLinearLayout, pendingIntent);
-        //initialise the database
-        taskDatabase = Room.databaseBuilder(context.getApplicationContext(),
-                TaskDatabase.class, "tasks")
-                .fallbackToDestructiveMigration()
-                .build();
+
+        if (taskDatabase == null) {
+            initDatabase(context);
+        }
 
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
             //Background work here
-            //NB: This is the new thread in which the database stuff happens
-            final List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasks();
-            final int numUncompleted = tasks.size();
+            final int num = taskDatabase.taskDao().getNumberOfAllUncompletedTasks();
             handler.post(() -> {
-                CharSequence widgetNum = String.valueOf(numUncompleted);
-                // Construct the RemoteViews object
-                views.setTextViewText(R.id.appwidget_num, widgetNum);
-                //string array for the text views
-                String[] stringArray = new String[]{"","",""};
-                for (int i = 0; i < tasks.size(); i++) {
-                    stringArray[i] = tasks.get(i).getName();
-                }
-
-                //set the text of the textViews
-                views.setTextViewText(R.id.appwidget_task0, stringArray[0]);
-                views.setTextViewText(R.id.appwidget_task1, stringArray[1]);
-                views.setTextViewText(R.id.appwidget_task2, stringArray[2]);
-
                 // Instruct the widget manager to update the widget
+                views.setTextViewText(R.id.appwidget_num, String.valueOf(num));
                 appWidgetManager.updateAppWidget(appWidgetId, views);
             });
         });
     }
 
+
     @Override
     public void onUpdate( Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds ) {
         // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.home_widget);
+            Intent intent = new Intent(context, MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+            // Get the layout for the App Widget and attach an on-click listener
+            views.setPendingIntentTemplate(R.id.widgetListView, pendingIntent);
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widgetListView);
+
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
     }
@@ -81,10 +85,25 @@ public class HomeWidget extends AppWidgetProvider {
     @Override
     public void onEnabled( Context context ) {
         // Enter relevant functionality for when the first widget is created
+        initDatabase(context);
+    }
+
+    public static void initDatabase(Context context) {
+        //initialise the database
+        taskDatabase = Room.databaseBuilder(context,
+                TaskDatabase.class, "tasks")
+                .fallbackToDestructiveMigration()
+                .build();
     }
 
     @Override
     public void onDisabled( Context context ) {
         // Enter relevant functionality for when the last widget is disabled
+        taskDatabase = null;
+    }
+
+    private static void setRemoteAdapter(Context context, @NonNull final RemoteViews views) {
+        views.setRemoteAdapter(R.id.widgetListView,
+                new Intent(context, WidgetService.class));
     }
 }

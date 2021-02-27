@@ -185,7 +185,7 @@ public class TasksAdapter extends
         LayoutInflater inflater = LayoutInflater.from(context);
 
         // Inflate the custom layout
-        View taskView = inflater.inflate(R.layout.list_item, parent, false);
+        View taskView = inflater.inflate(R.layout.list_item_main, parent, false);
 
         // Return a new holder instance
         ViewHolder viewHolder = new ViewHolder(taskView, context);
