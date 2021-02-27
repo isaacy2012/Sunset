@@ -10,9 +10,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.method.LinkMovementMethod;
+import android.text.method.ScrollingMovementMethod;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -70,6 +76,42 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public void showUpdateDialog() {
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View updateText = inflater.inflate(R.layout.update_text, null);
+        TextView updateTextView = updateText.findViewById(R.id.updateTextView);
+
+        String updateBodyString = getString(R.string.update_1_dot_1);
+        updateTextView.setText(Html.fromHtml(updateBodyString, Html.FROM_HTML_MODE_COMPACT));
+        updateTextView.setMovementMethod(new LinkMovementMethod());
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = displayMetrics.heightPixels;
+        updateTextView.setMaxHeight(height/2);
+
+        String updateString = ("What's new in version 1.1:");
+
+
+
+        builder.setMessage(updateString)
+                .setView(updateText)
+                .setPositiveButton("Ok", ( dialog, id ) -> {
+                    //nothing
+                })
+                .setNeutralButton("Leave a review", (dialog, id) -> {
+                    Intent intent = new Intent();
+                    intent.setAction(Intent.ACTION_VIEW);
+                    intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                    intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com.innerCat.sunrise&reviewId=0"));
+                    startActivity(intent);
+                });
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setDimAmount(0.0f);
+        dialog.show();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +122,13 @@ public class MainActivity extends AppCompatActivity {
 
         //streak
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+
+        if (sharedPreferences.getBoolean("update_1_dot_1", false) == false) {
+            showUpdateDialog();
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("update_1_dot_1", true);
+            editor.apply();
+        }
 
         //get the default text color
         TextView messageTextView = findViewById(R.id.messageTextView);
@@ -113,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < tasks.size(); i++) {
                 if (DAYS.between(tasks.get(i).getDate(), LocalDate.now()) != 0) {
                     Task task = tasks.get(i);
+                    //noinspection SuspiciousListRemoveInLoop since we are adding it back at index 0
                     tasks.remove(i);
                     tasks.add(0, task);
                 }

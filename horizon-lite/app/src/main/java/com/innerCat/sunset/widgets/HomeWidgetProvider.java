@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
@@ -50,6 +51,11 @@ public class HomeWidgetProvider extends AppWidgetProvider {
             handler.post(() -> {
                 // Instruct the widget manager to update the widget
                 views.setTextViewText(R.id.appwidget_num, String.valueOf(num));
+                if (num == 0) {
+                    views.setViewVisibility(R.id.congratulationSmile, View.VISIBLE);
+                } else {
+                    views.setViewVisibility(R.id.congratulationSmile, View.GONE);
+                }
                 appWidgetManager.updateAppWidget(appWidgetId, views);
             });
         });

@@ -14,32 +14,18 @@
             android:gravity="fill_vertical">
 
         <TextView
-                android:text="TODAY"
+                android:text="TASKS\nTODAY"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/textView"
                 android:layout_marginLeft="8dp"
                 android:layout_marginTop="0dp"
                 android:textColor="@color/primaryDarkColor"
-                android:textSize="11sp"
-                android:paddingTop="6dp" />
-
-        <TextView
-                android:id="@+id/appwidget_num"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="20sp"
-                android:contentDescription="@string/appwidget_text"
-                android:layout_marginTop="0dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="0dp"
-                android:textColor="@android:color/black"
-                android:fontFamily="@font/montserrat"
-                android:layout_weight="1"
-                android:textAlignment="textEnd"
-                android:layout_marginRight="0dp" />
+                android:textSize="14sp"
+                android:paddingTop="6dp"
+                android:textAlignment="viewStart"
+                android:layout_marginRight="0dp"
+                android:layout_weight="0" />
 
         <ImageView
                 android:layout_width="55dp"
@@ -51,6 +37,57 @@
                 android:layout_marginBottom="2dp"
                 android:visibility="gone" />
 
+        <TextView
+                android:id="@+id/appwidget_num"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="36sp"
+                android:contentDescription="@string/appwidget_text"
+                android:layout_marginTop="0dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="0dp"
+                android:textColor="@android:color/black"
+                android:fontFamily="@font/montserrat"
+                android:layout_weight="1"
+                android:textAlignment="textEnd"
+                android:layout_marginRight="8dp"
+                android:visibility="visible" />
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:layout_marginBottom="28dp">
+
+        <TextView
+                android:text=":)"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/congratulationSmile"
+                android:layout_marginHorizontal="8dp"
+                android:textAlignment="center"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="4dp"
+                android:gravity="center"
+                android:rotation="90"
+                android:textSize="18sp" />
+
+        <TextView
+                android:text="Well done! All tasks completed today."
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/congratulationSmile2"
+                android:layout_marginHorizontal="8dp"
+                android:textAlignment="center"
+                android:layout_marginTop="0dp"
+                android:gravity="center"
+                android:fontFamily="@font/montserrat" />
+
     </LinearLayout>
 
     <ListView
@@ -58,7 +95,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/widgetListView"
             android:layout_marginLeft="0dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:layout_marginEnd="0dp"
             android:layout_marginRight="0dp"
             android:divider="@null"

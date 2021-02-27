@@ -2,6 +2,11 @@ package com.innerCat.sunset.widgets;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
@@ -11,13 +16,17 @@ import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
 import com.innerCat.sunset.room.TaskDatabase;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 
 public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
 
-    List<String> tasks = new ArrayList<>();
+    List<SpannableStringBuilder> tasks = new ArrayList<>();
     Context context = null;
     TaskDatabase taskDatabase;
 
@@ -36,9 +45,32 @@ public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
     @Override
     public void onDataSetChanged() {
         tasks.clear();
-        final List<Task> uncompleteTasks = taskDatabase.taskDao().getAllUncompletedTasks();
+        List<Task> uncompleteTasks = taskDatabase.taskDao().getAllUncompletedTasks();
+        //formatting the tasks
+        Collections.reverse(uncompleteTasks);
+        for (int i = 0; i < uncompleteTasks.size(); i++) {
+            if (DAYS.between(uncompleteTasks.get(i).getDate(), LocalDate.now()) != 0) {
+                Task task = uncompleteTasks.get(i);
+                //noinspection SuspiciousListRemoveInLoop since we are adding it back at index 0
+                uncompleteTasks.remove(i);
+                uncompleteTasks.add(0, task);
+            }
+        }
+
         for (Task task : uncompleteTasks) {
-            tasks.add(task.getName());
+            SpannableStringBuilder ssb = new SpannableStringBuilder();
+
+            SpannableString name= new SpannableString(task.getName());
+            name.setSpan(new ForegroundColorSpan(Color.BLACK), 0, name.length(), 0);
+            if ((int)DAYS.between(task.getDate(), LocalDate.now()) != 0) {
+                SpannableString bullet= new SpannableString("• ");
+                bullet.setSpan(new ForegroundColorSpan(Color.parseColor("#d15b5b")), 0, bullet.length(), 0);
+                ssb.append(bullet);
+            }
+
+            ssb.append(name);
+
+            tasks.add(ssb);
         }
     }
 
@@ -56,7 +88,6 @@ public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
     public RemoteViews getViewAt(int position) {
         RemoteViews widgetListView = new RemoteViews(context.getPackageName(),
                 R.layout.list_item_widget);
-        System.out.println("queried");
         widgetListView.setTextViewText(R.id.listItemWidgetTextView, tasks.get(position));
 
         // Create an Intent to launch MainActivity

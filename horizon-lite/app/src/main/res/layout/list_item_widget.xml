@@ -9,6 +9,6 @@
         android:layout_marginEnd="8dp"
         android:fontFamily="@font/montserrat"
         android:textColor="@color/black"
-        android:textSize="11sp"
+        android:textSize="16sp"
         android:paddingBottom="1dp" />
 
