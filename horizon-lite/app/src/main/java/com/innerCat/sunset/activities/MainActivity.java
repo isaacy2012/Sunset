@@ -1,4 +1,4 @@
-package com.innerCat.sunrise.activities;
+package com.innerCat.sunset.activities;
 
 import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
@@ -31,12 +31,13 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.innerCat.sunrise.widgets.HomeWidgetProvider;
-import com.innerCat.sunrise.R;
-import com.innerCat.sunrise.Task;
-import com.innerCat.sunrise.recyclerViews.TasksAdapter;
-import com.innerCat.sunrise.room.Converters;
-import com.innerCat.sunrise.room.TaskDatabase;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.innerCat.sunset.widgets.HomeWidgetProvider;
+import com.innerCat.sunset.R;
+import com.innerCat.sunset.Task;
+import com.innerCat.sunset.recyclerViews.TasksAdapter;
+import com.innerCat.sunset.room.Converters;
+import com.innerCat.sunset.room.TaskDatabase;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -497,6 +498,8 @@ public class MainActivity extends AppCompatActivity {
     public void fabButton(View view) {
 
         // Use the Builder class for convenient dialog construction
+        FloatingActionButton fab = findViewById(R.id.floatingActionButton);
+        fab.setVisibility(View.INVISIBLE);
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
         LayoutInflater inflater = LayoutInflater.from(this);
         View editTextView = inflater.inflate(R.layout.text_input, null);
@@ -511,14 +514,21 @@ public class MainActivity extends AppCompatActivity {
                         String name = input.getText().toString();
                         //add the task
                         addTask(name);
+                        fab.setVisibility(View.VISIBLE);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // User cancelled the dialog
+                        fab.setVisibility(View.VISIBLE);
                     }
                 });
         AlertDialog dialog = builder.create();
+        dialog.setOnCancelListener(dialog1 -> {
+            // dialog dismisses
+            fab.setVisibility(View.VISIBLE);
+            // Do your function here
+        });
         dialog.getWindow().setDimAmount(0.0f);
         dialog.show();
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);

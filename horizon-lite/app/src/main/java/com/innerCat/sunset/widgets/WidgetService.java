@@ -1,4 +1,4 @@
-package com.innerCat.sunrise.widgets;
+package com.innerCat.sunset.widgets;
 
 import android.content.Intent;
 import android.widget.RemoteViewsService;

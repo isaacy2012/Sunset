@@ -1,4 +1,4 @@
-package com.innerCat.sunrise.activities;
+package com.innerCat.sunset.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -16,11 +16,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
-import com.innerCat.sunrise.R;
-import com.innerCat.sunrise.Task;
-import com.innerCat.sunrise.recyclerViews.ArchiveTasksAdapter;
-import com.innerCat.sunrise.room.Converters;
-import com.innerCat.sunrise.room.TaskDatabase;
+import com.innerCat.sunset.R;
+import com.innerCat.sunset.Task;
+import com.innerCat.sunset.recyclerViews.ArchiveTasksAdapter;
+import com.innerCat.sunset.room.Converters;
+import com.innerCat.sunset.room.TaskDatabase;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 

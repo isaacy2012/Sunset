@@ -1,9 +1,9 @@
-package com.innerCat.sunrise;
+package com.innerCat.sunset;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-import com.innerCat.sunrise.room.Converters;
+import com.innerCat.sunset.room.Converters;
 
 import java.time.LocalDate;
 

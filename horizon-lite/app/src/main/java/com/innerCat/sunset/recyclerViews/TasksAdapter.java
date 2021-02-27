@@ -1,4 +1,4 @@
-package com.innerCat.sunrise.recyclerViews;
+package com.innerCat.sunset.recyclerViews;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,9 +16,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.innerCat.sunrise.R;
-import com.innerCat.sunrise.Task;
-import com.innerCat.sunrise.activities.MainActivity;
+import com.innerCat.sunset.R;
+import com.innerCat.sunset.Task;
+import com.innerCat.sunset.activities.MainActivity;
 
 import java.time.LocalDate;
 import java.util.Collections;

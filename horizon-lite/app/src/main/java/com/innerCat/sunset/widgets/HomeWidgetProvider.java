@@ -1,9 +1,8 @@
-package com.innerCat.sunrise.widgets;
+package com.innerCat.sunset.widgets;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -11,22 +10,14 @@ import android.os.Looper;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.room.Room;
 
-import com.innerCat.sunrise.R;
-import com.innerCat.sunrise.Task;
-import com.innerCat.sunrise.activities.MainActivity;
-import com.innerCat.sunrise.recyclerViews.TasksAdapter;
-import com.innerCat.sunrise.room.TaskDatabase;
+import com.innerCat.sunset.R;
+import com.innerCat.sunset.activities.MainActivity;
+import com.innerCat.sunset.room.TaskDatabase;
 
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static java.time.temporal.ChronoUnit.DAYS;
 
 /**
  * Implementation of App Widget functionality.

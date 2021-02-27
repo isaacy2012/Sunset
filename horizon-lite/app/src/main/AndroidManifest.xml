@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="com.innerCat.sunrise">
+        package="com.innerCat.sunset">
 
     <application
             android:allowBackup="true"
@@ -9,7 +9,7 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/Theme.horizonlite">
-        <receiver android:name=".widgets.HomeWidgetProvider">
+        <receiver android:name="com.innerCat.sunset.widgets.HomeWidgetProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -19,17 +19,17 @@
                     android:resource="@xml/home_widget_info" />
         </receiver>
 
-        <service android:name=".widgets.WidgetService"
+        <service android:name="com.innerCat.sunset.widgets.WidgetService"
                 android:permission="android.permission.BIND_REMOTEVIEWS" />
 
-        <activity android:name=".activities.MainActivity">
+        <activity android:name="com.innerCat.sunset.activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.ArchiveActivity"></activity>
+        <activity android:name="com.innerCat.sunset.activities.ArchiveActivity"></activity>
 
         <meta-data
                 android:name="preloaded_fonts"

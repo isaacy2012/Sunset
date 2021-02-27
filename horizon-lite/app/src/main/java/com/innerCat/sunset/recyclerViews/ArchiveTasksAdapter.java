@@ -1,4 +1,4 @@
-package com.innerCat.sunrise.recyclerViews;
+package com.innerCat.sunset.recyclerViews;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,9 +10,9 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.innerCat.sunrise.R;
-import com.innerCat.sunrise.Task;
-import com.innerCat.sunrise.activities.ArchiveActivity;
+import com.innerCat.sunset.R;
+import com.innerCat.sunset.Task;
+import com.innerCat.sunset.activities.ArchiveActivity;
 
 import java.util.HashSet;
 import java.util.List;

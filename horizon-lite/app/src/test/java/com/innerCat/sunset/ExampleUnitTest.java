@@ -1,4 +1,4 @@
-package com.innerCat.sunrise;
+package com.innerCat.sunset;
 
 import org.junit.Test;
 

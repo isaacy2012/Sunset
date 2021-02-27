@@ -1,4 +1,4 @@
-package com.innerCat.sunrise.room;
+package com.innerCat.sunset.room;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
@@ -6,7 +6,7 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
-import com.innerCat.sunrise.Task;
+import com.innerCat.sunset.Task;
 
 import java.util.List;
 
