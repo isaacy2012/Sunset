@@ -12,13 +12,16 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -559,6 +562,29 @@ public class MainActivity extends AppCompatActivity {
         dialog.getWindow().setDimAmount(0.0f);
         dialog.show();
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        okButton.setEnabled(false);
+        input.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged( CharSequence s, int start, int count, int after ) {
+
+            }
+
+            @Override
+            public void onTextChanged( CharSequence s, int start, int before, int count ) {
+                if (input.getText().length() > 0) {
+                    okButton.setEnabled(true);
+                } else {
+                    okButton.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged( Editable s ) {
+
+            }
+        });
 
     }
 
