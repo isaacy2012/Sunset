@@ -266,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
                 String messageText;
                 if (numTasks == 0) {
                     if (sharedPreferences.getBoolean(getString(R.string.today_at_least_one_completed), false) == true) {
-                        messageText = "Well done! You completed all tasks today";
+                        messageText = getString(R.string.congratulation_complete);
                     } else {
                         messageText = "You have no tasks today";
                     }

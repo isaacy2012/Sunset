@@ -78,14 +78,14 @@
                 android:textSize="18sp" />
 
         <TextView
-                android:text="Well done! All tasks completed today."
+                android:text="@string/congratulation_complete"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="8dp"
                 android:textAlignment="center"
                 android:layout_marginTop="0dp"
                 android:gravity="center"
-                android:fontFamily="@font/montserrat" />
+                android:fontFamily="sans-serif" />
 
     </LinearLayout>
 
