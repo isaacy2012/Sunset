@@ -3,8 +3,6 @@ package com.innerCat.sunset.activities;
 import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,9 +13,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Html;
-import android.text.Spannable;
+import android.text.InputType;
 import android.text.method.LinkMovementMethod;
-import android.text.method.ScrollingMovementMethod;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,22 +30,19 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.ColumnInfo;
 import androidx.room.Room;
-import androidx.room.migration.Migration;
-import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.innerCat.sunset.widgets.HomeWidgetProvider;
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
 import com.innerCat.sunset.recyclerViews.TasksAdapter;
 import com.innerCat.sunset.room.Converters;
 import com.innerCat.sunset.room.TaskDatabase;
+import com.innerCat.sunset.widgets.HomeWidgetProvider;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -120,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         ANIMATION_DURATION = getResources().getInteger(R.integer.animation_duration);
 
         //streak
-        sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
 
         //if the user hasn't seen the update dialog yet, then show it
         if (sharedPreferences.getBoolean("update_1_dot_1", false) == false) {
@@ -530,6 +524,13 @@ public class MainActivity extends AppCompatActivity {
         LayoutInflater inflater = LayoutInflater.from(this);
         View editTextView = inflater.inflate(R.layout.text_input, null);
         EditText input = editTextView.findViewById(R.id.editName);
+
+        if (sharedPreferences.getBoolean("capitalization", true) == true) {
+            input.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        } else {
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+        }
+
         input.requestFocus();
 
         builder.setMessage("Name")

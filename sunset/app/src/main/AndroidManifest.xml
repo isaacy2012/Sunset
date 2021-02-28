@@ -9,7 +9,9 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/Theme.horizonlite">
-        <receiver android:name="com.innerCat.sunset.widgets.HomeWidgetProvider">
+        <activity android:name=".activities.SettingsActivity"></activity>
+
+        <receiver android:name=".widgets.HomeWidgetProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -19,17 +21,18 @@
                     android:resource="@xml/home_widget_info" />
         </receiver>
 
-        <service android:name="com.innerCat.sunset.widgets.WidgetService"
+        <service
+                android:name=".widgets.WidgetService"
                 android:permission="android.permission.BIND_REMOTEVIEWS" />
 
-        <activity android:name="com.innerCat.sunset.activities.MainActivity">
+        <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.innerCat.sunset.activities.ArchiveActivity"></activity>
+        <activity android:name=".activities.ArchiveActivity" />
 
         <meta-data
                 android:name="preloaded_fonts"

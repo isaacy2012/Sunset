@@ -11,5 +11,5 @@
         android:textColor="@color/black"
         android:textSize="16sp"
         android:paddingBottom="1dp"
-        android:hyphenationFrequency="normal" />
+        android:hyphenationFrequency="full" />
 

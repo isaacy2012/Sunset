@@ -3,7 +3,6 @@ package com.innerCat.sunset.widgets;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
@@ -18,7 +17,6 @@ import com.innerCat.sunset.room.TaskDatabase;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static java.time.temporal.ChronoUnit.DAYS;

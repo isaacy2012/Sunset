@@ -16,17 +16,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
 import com.innerCat.sunset.recyclerViews.ArchiveTasksAdapter;
 import com.innerCat.sunset.room.Converters;
 import com.innerCat.sunset.room.TaskDatabase;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.innerCat.sunset.widgets.HomeWidgetProvider;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -84,6 +83,15 @@ public class ArchiveActivity extends AppCompatActivity {
                 // That's all!
             });
         });
+    }
+
+    /**
+     * When the settings button is pressed
+     * @param view
+     */
+    public void onSettingsButton( View view) {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
     /**
