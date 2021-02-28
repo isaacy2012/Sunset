@@ -118,6 +118,10 @@ public class MainActivity extends AppCompatActivity {
         //streak
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
 
+        SharedPreferences.Editor updateEditor = sharedPreferences.edit();
+        updateEditor.putBoolean("update_1_dot_1", false);
+        updateEditor.apply();
+
         //if the user hasn't seen the update dialog yet, then show it
         if (sharedPreferences.getBoolean("update_1_dot_1", false) == false) {
             showUpdateDialog();
@@ -183,19 +187,6 @@ public class MainActivity extends AppCompatActivity {
         updateStreak();
     }
 
-    /**
-     * Update the widgets
-     */
-    public void updateWidgets() {
-        Intent intent = new Intent(this, HomeWidgetProvider.class);
-        //update intent
-        intent.setAction("android.appwidget.action.APPWIDGET_UPDATE");
-        //ids of widgets
-        int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), HomeWidgetProvider.class));;
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
-        sendBroadcast(intent);
-    }
-
 
     /**
      * When the archive button is pressed
@@ -218,15 +209,36 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == LIST_TASK_REQUEST) {
             if(resultCode == RESULT_OK) {
-                String[] names = data.getStringArrayExtra("names");
-                ArrayList<String> namesAL = new ArrayList<String>();
-                Collections.addAll(namesAL, names);
-                addTasks(namesAL);
-//                for (String name : names) {
-//                    addTask(name);
-//                }
+                ArrayList<Integer> ids = data.getIntegerArrayListExtra("ids");
+                addIds(ids);
             }
         }
+    }
+
+    /**
+     * Add tasks to the adapter given ids of Tasks *already added* into the database
+     * @param ids the ids of the Tasks
+     */
+    public void addIds(ArrayList<Integer> ids) {
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            ArrayList<Task> newTasks = new ArrayList<>();
+            for (Integer id : ids) {
+                Task addTask = taskDatabase.taskDao().getTask(id);
+                if (addTask != null) {
+                    newTasks.add(addTask);
+                }
+            }
+            handler.post(() -> {
+                for (Task addTask : newTasks) {
+                    adapter.addTask(0, addTask);
+                    adapter.notifyItemInserted(0);
+                }
+            });
+        });
     }
 
 
@@ -305,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
     public void updateStreak() {
         //ROOM Threads
         updateMessage();
-        updateWidgets();
+        HomeWidgetProvider.broadcastUpdate(this);
         final SharedPreferences.Editor editor = sharedPreferences.edit();
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
@@ -507,38 +519,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Add multiple tasks
-     * @param names the names of the tasks
-     */
-    public void addTasks(ArrayList<String> names) {
-        //ROOM Threads
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-        ArrayList<Task> tasks = new ArrayList<Task>();
-        executor.execute(() -> {
-            //Background work here
-            for (String name : names) {
-                Task task = new Task(name);
-                long id = taskDatabase.taskDao().insert(task);
-                task.setId((int) id);
-                tasks.add(task);
-            }
-            handler.post(() -> {
-                for (Task task : tasks) {
-                    // Add a new task
-                    adapter.addTask(0, task);
-                    // Notify the adapter that an item was inserted at position 0
-                    adapter.notifyItemInserted(0);
-                    //rvTasks.scheduleLayoutAnimation();
-                    rvTasks.scrollToPosition(0);
-                    //rvTasks.scheduleLayoutAnimation();
-                }
-            });
-        });
-        updateStreak();
-
-    }
 
     /** Called when the user taps the FAB button */
     public void fabButton(View view) {

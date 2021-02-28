@@ -3,6 +3,7 @@ package com.innerCat.sunset.widgets;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -26,6 +27,16 @@ import java.util.concurrent.Executors;
 public class HomeWidgetProvider extends AppWidgetProvider {
 
     static TaskDatabase taskDatabase;
+
+    public static void broadcastUpdate(Context context) {
+            Intent intent = new Intent(context, HomeWidgetProvider.class);
+            //update intent
+            intent.setAction("android.appwidget.action.APPWIDGET_UPDATE");
+            //ids of widgets
+            int[] ids = AppWidgetManager.getInstance(context.getApplicationContext()).getAppWidgetIds(new ComponentName(context.getApplicationContext(), HomeWidgetProvider.class));;
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
+            context.sendBroadcast(intent);
+    }
 
     static void updateAppWidget( Context context, AppWidgetManager appWidgetManager,
                                  int appWidgetId ) {

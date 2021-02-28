@@ -23,6 +23,7 @@ import com.innerCat.sunset.room.Converters;
 import com.innerCat.sunset.room.TaskDatabase;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.innerCat.sunset.widgets.HomeWidgetProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +38,7 @@ public class ArchiveActivity extends AppCompatActivity {
     static TaskDatabase taskDatabase;
     RecyclerView rvTasks;
     ArchiveTasksAdapter adapter;
-    ArrayList<String> namesToReplay = new ArrayList<String>();
+    ArrayList<Integer> idsToReplay = new ArrayList<>();
     ArrayList<Task> deleteTasks = new ArrayList<Task>();
     ExtendedFloatingActionButton deleteFAB;
     ImageButton deleteButton;
@@ -208,11 +209,23 @@ public class ArchiveActivity extends AppCompatActivity {
     }
 
     /**
-     * Add a name to the List of names for adding back to the main tasks
-     * @param name the name to add
+     * Add a task to the database
+     * @param name the name of the task
      */
-    public void addName(String name) {
-        namesToReplay.add(name);
+    public void addTask(String name) {
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            Task task = new Task(name);
+            long id = taskDatabase.taskDao().insert(task);
+            task.setId((int) id);
+            idsToReplay.add((int)id);
+            handler.post(() -> {
+                HomeWidgetProvider.broadcastUpdate(this);
+            });
+        });
     }
 
     @Override
@@ -220,12 +233,9 @@ public class ArchiveActivity extends AppCompatActivity {
      * When the hardware/software back button is pressed
      */
     public void onBackPressed() {
-        String[] nameArray = new String[namesToReplay.size()];
-        //ensure names is converted to array of Strings
-        nameArray = namesToReplay.toArray(nameArray);
         Intent intent = new Intent();
-        //pass back the names to the MainActivity
-        intent.putExtra("names", nameArray);
+        //pass back the ids to the MainActivity
+        intent.putExtra("ids", idsToReplay);
         setResult(RESULT_OK, intent);
         finish();
     }

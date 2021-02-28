@@ -62,7 +62,7 @@ public class ArchiveTasksAdapter extends
                     int currentPosition = archivedTasks.indexOf(task);
                     archivedTasks.remove(currentPosition);
                     notifyItemRemoved(currentPosition);
-                    ((ArchiveActivity)context).addName(task.getName());
+                    ((ArchiveActivity)context).addTask(task.getName());
                 }
             });
         }

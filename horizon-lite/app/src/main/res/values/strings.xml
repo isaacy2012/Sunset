@@ -8,6 +8,6 @@
     <string name="today_at_least_one_completed">"todayAtLeastOneCompleted"</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
-    <string name="update_1_dot_1"><![CDATA[<b>New Features</b> <br>- A shiny new homescreen widget allows you to see all of today\'s tasks at a glance<br><br><b>Improvements</b><br>- The add button now disappears once you\'re adding a task<br><br><b>Tweaks</b><br>- Slightly tweaked task corner radius<br><br>If you have any bug reports or feature requests, feel free to leave a review or post an issue on our <a href="https://github.com/isaacy2012/Sunset">GitHub repository</a>.<br><br>Thanks for using Sunset!
+    <string name="update_1_dot_1"><![CDATA[<b>New Features</b> <br>- A shiny new homescreen widget allows you to see all of today\'s tasks at a glance<br><br><b>Improvements</b><br>- The add button now disappears once you\'re adding a task<br><br><b>Tweaks</b><br>- Slightly tweaked task corner radius<br><br><b>Bugfixes</b><br>- Fixed a bug where immediately closing the app after replaying a task would mean the task was not replayed<br><br>If you have any bug reports or feature requests, feel free to leave a review or post an issue on our <a href="https://github.com/isaacy2012/Sunset">GitHub repository</a>.<br><br>Thanks for using Sunset!
 ]]></string>
 </resources>
