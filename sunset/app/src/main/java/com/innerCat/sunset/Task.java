@@ -1,5 +1,7 @@
 package com.innerCat.sunset;
 
+import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -21,6 +23,9 @@ public class Task implements Comparable<Task> {
     private LocalDate date;
     private boolean complete = false;
     private boolean late = false;
+
+    @ColumnInfo(defaultValue = "0")
+    private int repeatTimes = 0;
 
 
     //constructor
@@ -78,11 +83,19 @@ public class Task implements Comparable<Task> {
     }
 
     public boolean isLate() {
-        return late;
+        return this.late;
     }
 
     public void setLate( boolean late ) {
         this.late = late;
+    }
+
+    public void setRepeatTimes(int repeatTimes) {
+        this.repeatTimes = repeatTimes;
+    }
+
+    public int getRepeatTimes() {
+        return this.repeatTimes;
     }
 
     @Override
@@ -104,3 +117,4 @@ public class Task implements Comparable<Task> {
 
     }
 }
+

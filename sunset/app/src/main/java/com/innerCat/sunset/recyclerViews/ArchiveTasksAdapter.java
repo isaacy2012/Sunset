@@ -33,6 +33,7 @@ public class ArchiveTasksAdapter extends
         // for any view that will be set as you render a row
         public TextView nameTextView;
         public CheckBox deleteCheckBox;
+        public TextView replayTextView;
         public ImageButton replayButton;
         public Task task;
         public Context context;
@@ -49,6 +50,7 @@ public class ArchiveTasksAdapter extends
             nameTextView = (TextView) itemView.findViewById(R.id.nameView);
             replayButton = (ImageButton) itemView.findViewById(R.id.replayButton);
             deleteCheckBox = (CheckBox) itemView.findViewById(R.id.deleteCheckBox);
+            replayTextView = (TextView) itemView.findViewById(R.id.replayTextView );
             deleteCheckBox.setOnClickListener(v -> {
                 if (deleteCheckBox.isChecked() == true) {
                     ((ArchiveActivity)context).addDeleteTask(task);
@@ -56,14 +58,11 @@ public class ArchiveTasksAdapter extends
                     ((ArchiveActivity)context).removeDeleteTask(task);
                 }
             });
-            replayButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int currentPosition = archivedTasks.indexOf(task);
-                    archivedTasks.remove(currentPosition);
-                    notifyItemRemoved(currentPosition);
-                    ((ArchiveActivity)context).addTask(task.getName());
-                }
+            replayButton.setOnClickListener(v -> {
+                int currentPosition = archivedTasks.indexOf(task);
+                archivedTasks.remove(currentPosition);
+                notifyItemRemoved(currentPosition);
+                ((ArchiveActivity)context).repeatTask(task);
             });
         }
 
@@ -150,8 +149,17 @@ public class ArchiveTasksAdapter extends
         holder.task = archivedTasks.get(position);
 
         // Set item views based on your views and data model
-        TextView textView = holder.nameTextView;
-        textView.setText(holder.task.getName());
+        TextView nameTextView = holder.nameTextView;
+        TextView replayTextView = holder.replayTextView;
+        int repeatTimes = holder.task.getRepeatTimes();
+        if (repeatTimes != 0) {
+            String str = "Replayed " + (repeatTimes > 1 ? repeatTimes +  " times" : "once") + " before";
+            replayTextView.setText(str);
+            replayTextView.setVisibility(View.VISIBLE);
+        } else {
+            replayTextView.setVisibility(View.GONE);
+        }
+        nameTextView.setText(holder.task.getName());
         mBoundViewHolders.add(holder);
         holder.updateState();
 

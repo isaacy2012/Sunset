@@ -91,7 +91,7 @@
 
     <ListView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:id="@+id/widgetListView"
             android:layout_marginLeft="0dp"
             android:layout_marginTop="4dp"
@@ -102,7 +102,10 @@
             android:scrollbars="none"
             android:overScrollMode="never"
             android:layout_marginBottom="0dp"
-            android:listSelector="@android:color/transparent" />
+            android:listSelector="@android:color/transparent"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
 
 </LinearLayout>
 

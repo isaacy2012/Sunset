@@ -34,7 +34,8 @@ public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
         this.context = context;
         taskDatabase = Room.databaseBuilder(context.getApplicationContext(),
                 TaskDatabase.class, "tasks")
-                .fallbackToDestructiveMigration()
+                //.fallbackToDestructiveMigration()
+                .addMigrations(TaskDatabase.MIGRATION_2_3)
                 .build();
     }
 
@@ -47,7 +48,6 @@ public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
         tasks.clear();
         List<Task> incompleteTasks = taskDatabase.taskDao().getAllUncompletedTasks();
         //formatting the tasks
-        Collections.reverse(incompleteTasks);
         for (int i = 0; i < incompleteTasks.size(); i++) {
             if (DAYS.between(incompleteTasks.get(i).getDate(), LocalDate.now()) != 0) {
                 Task task = incompleteTasks.get(i);

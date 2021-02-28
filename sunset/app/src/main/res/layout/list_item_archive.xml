@@ -24,16 +24,31 @@
             android:layout_marginRight="4dp">
 
 
-        <TextView
+        <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/nameView"
-                android:layout_weight="1"
-                android:fontFamily="sans-serif-medium"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textSize="18sp"
-                android:layout_marginVertical="0dp"
-                android:baselineAligned="false" />
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/nameView"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-medium"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textSize="18sp"
+                    android:layout_marginVertical="0dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical" />
+
+            <TextView
+                    android:text="TextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/replayTextView"
+                    android:visibility="visible" />
+        </LinearLayout>
 
         <ImageButton
                 android:layout_width="30dp"

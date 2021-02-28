@@ -63,7 +63,8 @@ public class ArchiveActivity extends AppCompatActivity {
         //initialise the database
         taskDatabase = Room.databaseBuilder(getApplicationContext(),
                 TaskDatabase.class, "tasks")
-                .fallbackToDestructiveMigration()
+                //.fallbackToDestructiveMigration()
+                .addMigrations(TaskDatabase.MIGRATION_2_3)
                 .build();
 
         //ROOM Threads
@@ -73,7 +74,6 @@ public class ArchiveActivity extends AppCompatActivity {
             //Background work here
             //NB: This is the new thread in which the database stuff happens
             List<Task> tasks = taskDatabase.taskDao().getAllCompletedTasks();
-            Collections.reverse(tasks);
             handler.post(() -> {
                 // Create adapter passing in the sample user data
                 adapter = new ArchiveTasksAdapter(tasks);
@@ -208,19 +208,22 @@ public class ArchiveActivity extends AppCompatActivity {
         checkFAB(true);
     }
 
+
     /**
-     * Add a task to the database
-     * @param name the name of the task
+     * Repeat a task to the database
+     * @param task the task to repeat
      */
-    public void addTask(String name) {
+    public void repeatTask( Task task ) {
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
             //Background work here
-            Task task = new Task(name);
-            long id = taskDatabase.taskDao().insert(task);
-            task.setId((int) id);
+            taskDatabase.taskDao().removeById(task.getId());
+            Task newTask = new Task(task.getName());
+            newTask.setRepeatTimes(task.getRepeatTimes()+1);
+            long id = taskDatabase.taskDao().insert(newTask);
+            newTask.setId((int) id);
             idsToReplay.add((int)id);
             handler.post(() -> {
                 HomeWidgetProvider.broadcastUpdate(this);

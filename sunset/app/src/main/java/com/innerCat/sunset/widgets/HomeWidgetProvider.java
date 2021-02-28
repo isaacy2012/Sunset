@@ -100,7 +100,8 @@ public class HomeWidgetProvider extends AppWidgetProvider {
         //initialise the database
         taskDatabase = Room.databaseBuilder(context,
                 TaskDatabase.class, "tasks")
-                .fallbackToDestructiveMigration()
+                //.fallbackToDestructiveMigration()
+                .addMigrations(TaskDatabase.MIGRATION_2_3)
                 .build();
     }
 

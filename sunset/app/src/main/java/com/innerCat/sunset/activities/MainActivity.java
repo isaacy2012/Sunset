@@ -31,6 +31,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.ColorUtils;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.ColumnInfo;
 import androidx.room.Room;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
@@ -65,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
     TasksAdapter adapter;
     SharedPreferences sharedPreferences;
     int defaultColor;
+
+    @ColumnInfo(defaultValue = "0")
+    int repeatTimes = 0;
 
     private final int LIST_TASK_REQUEST = 1;
 
@@ -118,10 +122,6 @@ public class MainActivity extends AppCompatActivity {
         //streak
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
 
-        SharedPreferences.Editor updateEditor = sharedPreferences.edit();
-        updateEditor.putBoolean("update_1_dot_1", false);
-        updateEditor.apply();
-
         //if the user hasn't seen the update dialog yet, then show it
         if (sharedPreferences.getBoolean("update_1_dot_1", false) == false) {
             showUpdateDialog();
@@ -137,7 +137,8 @@ public class MainActivity extends AppCompatActivity {
         //initialise the database
         taskDatabase = Room.databaseBuilder(getApplicationContext(),
                 TaskDatabase.class, "tasks")
-                .fallbackToDestructiveMigration()
+                //.fallbackToDestructiveMigration()
+                .addMigrations(TaskDatabase.MIGRATION_2_3)
                 .build();
 
         //get the recyclerview in activity layout
@@ -158,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
             //Background work here
             //NB: This is the new thread in which the database stuff happens
             List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasks();
-            Collections.reverse(tasks);
             for (int i = 0; i < tasks.size(); i++) {
                 if (DAYS.between(tasks.get(i).getDate(), LocalDate.now()) != 0) {
                     Task task = tasks.get(i);
