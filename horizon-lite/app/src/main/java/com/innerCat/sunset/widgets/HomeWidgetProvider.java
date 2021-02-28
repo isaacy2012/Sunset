@@ -52,9 +52,9 @@ public class HomeWidgetProvider extends AppWidgetProvider {
                 // Instruct the widget manager to update the widget
                 views.setTextViewText(R.id.appwidget_num, String.valueOf(num));
                 if (num == 0) {
-                    views.setViewVisibility(R.id.congratulationSmile, View.VISIBLE);
+                    views.setViewVisibility(R.id.congratulationLayout, View.VISIBLE);
                 } else {
-                    views.setViewVisibility(R.id.congratulationSmile, View.GONE);
+                    views.setViewVisibility(R.id.congratulationLayout, View.GONE);
                 }
                 appWidgetManager.updateAppWidget(appWidgetId, views);
             });

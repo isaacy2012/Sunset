@@ -62,13 +62,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:layout_marginBottom="28dp">
+            android:layout_marginBottom="28dp"
+            android:id="@+id/congratulationLayout">
 
         <TextView
                 android:text=":)"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/congratulationSmile"
                 android:layout_marginHorizontal="8dp"
                 android:textAlignment="center"
                 android:layout_marginTop="0dp"
@@ -81,7 +81,6 @@
                 android:text="Well done! All tasks completed today."
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/congratulationSmile2"
                 android:layout_marginHorizontal="8dp"
                 android:textAlignment="center"
                 android:layout_marginTop="0dp"

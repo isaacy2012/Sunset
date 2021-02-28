@@ -45,19 +45,19 @@ public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
     @Override
     public void onDataSetChanged() {
         tasks.clear();
-        List<Task> uncompleteTasks = taskDatabase.taskDao().getAllUncompletedTasks();
+        List<Task> incompleteTasks = taskDatabase.taskDao().getAllUncompletedTasks();
         //formatting the tasks
-        Collections.reverse(uncompleteTasks);
-        for (int i = 0; i < uncompleteTasks.size(); i++) {
-            if (DAYS.between(uncompleteTasks.get(i).getDate(), LocalDate.now()) != 0) {
-                Task task = uncompleteTasks.get(i);
+        Collections.reverse(incompleteTasks);
+        for (int i = 0; i < incompleteTasks.size(); i++) {
+            if (DAYS.between(incompleteTasks.get(i).getDate(), LocalDate.now()) != 0) {
+                Task task = incompleteTasks.get(i);
                 //noinspection SuspiciousListRemoveInLoop since we are adding it back at index 0
-                uncompleteTasks.remove(i);
-                uncompleteTasks.add(0, task);
+                incompleteTasks.remove(i);
+                incompleteTasks.add(0, task);
             }
         }
 
-        for (Task task : uncompleteTasks) {
+        for (Task task : incompleteTasks) {
             SpannableStringBuilder ssb = new SpannableStringBuilder();
 
             SpannableString name= new SpannableString(task.getName());

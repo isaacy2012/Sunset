@@ -9,7 +9,7 @@
             android:scrollbars="vertical"
             android:text="TextView"
             android:id="@+id/updateTextView"
-            android:layout_marginHorizontal="22dp"
+            android:layout_marginHorizontal="24dp"
             android:maxHeight="400dp" />
 
 </ScrollView>

@@ -68,14 +68,9 @@ public class MainActivity extends AppCompatActivity {
 
     private final int LIST_TASK_REQUEST = 1;
 
-    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
-        @Override
-        public void migrate( SupportSQLiteDatabase database) {
-            database.execSQL("ALTER TABLE tasks "
-                    + " ADD COLUMN late INTEGER");
-        }
-    };
-
+    /**
+     * Show the update dialog, which shows users what the new features in an update are
+     */
     public void showUpdateDialog() {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -123,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
         //streak
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
 
+        //if the user hasn't seen the update dialog yet, then show it
         if (sharedPreferences.getBoolean("update_1_dot_1", false) == false) {
             showUpdateDialog();
             SharedPreferences.Editor editor = sharedPreferences.edit();
