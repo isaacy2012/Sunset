@@ -14,9 +14,12 @@ import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
 import com.innerCat.sunset.activities.ArchiveActivity;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 // Create the basic adapter extending from RecyclerView.Adapter
 // Note that we specify the custom ViewHolder which gives us access to our views
@@ -152,7 +155,13 @@ public class ArchiveTasksAdapter extends
         TextView nameTextView = holder.nameTextView;
         TextView replayTextView = holder.replayTextView;
         int repeatTimes = holder.task.getRepeatTimes();
-        if (repeatTimes != 0) {
+        if ((int)DAYS.between(holder.task.getDate(), LocalDate.now()) == 0 && holder.task.isLate() == false) {
+            //completed today and not a late task
+            String str = "Completed today";
+            replayTextView.setText(str);
+            replayTextView.setVisibility(View.VISIBLE);
+        } else if (repeatTimes != 0) {
+            //completed today and not a late task
             String str = "Replayed " + (repeatTimes > 1 ? repeatTimes +  " times" : "once") + " before";
             replayTextView.setText(str);
             replayTextView.setVisibility(View.VISIBLE);

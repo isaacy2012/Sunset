@@ -20,6 +20,7 @@ import android.text.method.LinkMovementMethod;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -28,6 +29,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -69,6 +71,12 @@ public class MainActivity extends AppCompatActivity {
 
     private final int LIST_TASK_REQUEST = 1;
 
+    public void setUpdateSeen(String updateString) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(updateString, true);
+        editor.apply();
+    }
+
     /**
      * Show the update dialog, which shows users what the new features in an update are
      */
@@ -89,23 +97,28 @@ public class MainActivity extends AppCompatActivity {
 
         String updateString = ("What's new in version 1.1:");
 
-
-
         builder.setMessage(updateString)
                 .setView(updateText)
                 .setPositiveButton("Ok", ( dialog, id ) -> {
-                    //nothing
+                    setUpdateSeen("update_1_dot_1");
                 })
-                .setNeutralButton("Leave a review", (dialog, id) -> {
-                    Intent intent = new Intent();
-                    intent.setAction(Intent.ACTION_VIEW);
-                    intent.addCategory(Intent.CATEGORY_BROWSABLE);
-                    intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com.innerCat.sunrise&reviewId=0"));
-                    startActivity(intent);
-                });
+                .setNeutralButton("Leave a review", null);
         AlertDialog dialog = builder.create();
         dialog.getWindow().setDimAmount(0.0f);
         dialog.show();
+        dialog.setOnCancelListener(dialog1 -> {
+            setUpdateSeen("update_1_dot_1");
+        });
+        Button neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+        neutralButton.setOnClickListener(v -> {
+            // dialog doesn't dismiss
+            setUpdateSeen("update_1_dot_1");
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.addCategory(Intent.CATEGORY_BROWSABLE);
+            intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com.innerCat.sunrise&reviewId=0"));
+            startActivity(intent);
+        });
     }
 
     @Override
@@ -122,9 +135,6 @@ public class MainActivity extends AppCompatActivity {
         //if the user hasn't seen the update dialog yet, then show it
         if (sharedPreferences.getBoolean("update_1_dot_1", false) == false) {
             showUpdateDialog();
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("update_1_dot_1", true);
-            editor.apply();
         }
 
         //get the default text color
@@ -557,7 +567,6 @@ public class MainActivity extends AppCompatActivity {
         dialog.setOnCancelListener(dialog1 -> {
             // dialog dismisses
             fab.setVisibility(View.VISIBLE);
-            // Do your function here
         });
         dialog.getWindow().setDimAmount(0.0f);
         dialog.show();

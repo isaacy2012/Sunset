@@ -42,15 +42,18 @@
 
                 <TextView
                         android:text=" 0"
-                        android:layout_width="24dp"
-                        android:layout_height="31dp"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
                         android:id="@+id/streakCounter"
                         app:layout_constraintTop_toTopOf="parent"
-                        android:layout_marginTop="24dp"
+                        android:layout_marginTop="22dp"
                         android:fontFamily="sans-serif-medium"
-                        android:textSize="24sp"
+                        android:textSize="25sp"
                         app:layout_constraintEnd_toStartOf="@+id/imageButton"
-                        android:textAlignment="center" />
+                        android:textAlignment="center"
+                        app:flow_verticalAlign="center"
+                        app:flow_horizontalAlign="center"
+                        android:layout_marginEnd="8dp" />
 
                 <ImageButton
                         android:layout_width="32dp"

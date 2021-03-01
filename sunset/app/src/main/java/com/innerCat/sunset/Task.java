@@ -109,7 +109,7 @@ public class Task implements Comparable<Task> {
             return false;
         }
         Task c = (Task) o;
-        if (c.getId() == this.getId()) {
+        if (c.getId() == this.getId() && c.getName().equals(this.getName())) {
             return true;
         } else {
             return false;
