@@ -67,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
     int defaultColor;
 
     @ColumnInfo(defaultValue = "0")
-    int repeatTimes = 0;
 
     private final int LIST_TASK_REQUEST = 1;
 
@@ -116,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent();
             intent.setAction(Intent.ACTION_VIEW);
             intent.addCategory(Intent.CATEGORY_BROWSABLE);
-            intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com.innerCat.sunrise&reviewId=0"));
+            intent.setData(Uri.parse(getString(R.string.google_play_store_listing)));
             startActivity(intent);
         });
     }
@@ -582,7 +581,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged( CharSequence s, int start, int before, int count ) {
-                if (input.getText().length() > 0) {
+                if (input.getText().toString().trim().length() > 0) {
                     okButton.setEnabled(true);
                 } else {
                     okButton.setEnabled(false);
