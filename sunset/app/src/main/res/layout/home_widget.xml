@@ -1,0 +1,111 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/homeWidgetLinearLayout"
+        android:background="@drawable/rounded_corners">
+
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="fill_vertical">
+
+        <TextView
+                android:text="TASKS\nTODAY"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/textView"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="0dp"
+                android:textColor="@color/primaryDarkColor"
+                android:textSize="14sp"
+                android:paddingTop="6dp"
+                android:textAlignment="viewStart"
+                android:layout_marginRight="0dp"
+                android:layout_weight="0" />
+
+        <ImageView
+                android:layout_width="55dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_horizon_logo"
+                android:id="@+id/imageView"
+                android:layout_weight="0"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="2dp"
+                android:visibility="gone" />
+
+        <TextView
+                android:id="@+id/appwidget_num"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="36sp"
+                android:contentDescription="@string/appwidget_text"
+                android:layout_marginTop="0dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="0dp"
+                android:textColor="@android:color/black"
+                android:fontFamily="@font/montserrat"
+                android:layout_weight="1"
+                android:textAlignment="textEnd"
+                android:layout_marginRight="8dp"
+                android:visibility="visible" />
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:layout_marginBottom="28dp"
+            android:id="@+id/congratulationLayout">
+
+        <TextView
+                android:text=":)"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:textAlignment="center"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="4dp"
+                android:gravity="center"
+                android:rotation="90"
+                android:textSize="18sp" />
+
+        <TextView
+                android:text="@string/congratulation_complete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:textAlignment="center"
+                android:layout_marginTop="0dp"
+                android:gravity="center"
+                android:fontFamily="sans-serif" />
+
+    </LinearLayout>
+
+    <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/widgetListView"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="0dp"
+            android:layout_marginRight="0dp"
+            android:divider="@null"
+            android:minHeight="0dp"
+            android:scrollbars="none"
+            android:overScrollMode="never"
+            android:layout_marginBottom="0dp"
+            android:listSelector="@android:color/transparent"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+
+</LinearLayout>
+

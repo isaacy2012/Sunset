@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".activities.MainActivity"
+        android:backgroundTintMode="add"
+        android:animateLayoutChanges="true">
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            app:srcCompat="@android:drawable/ic_input_add"
+            android:id="@+id/floatingActionButton"
+            android:onClick="fabButton"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="16dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:id="@+id/swipeRefreshLayout">
+
+        <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true"
+                android:id="@+id/nestedScrollView"
+                android:overScrollMode="always">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <TextView
+                        android:text=" 0"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/streakCounter"
+                        app:layout_constraintTop_toTopOf="parent"
+                        android:layout_marginTop="22dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textSize="25sp"
+                        app:layout_constraintEnd_toStartOf="@+id/imageButton"
+                        android:textAlignment="center"
+                        app:flow_verticalAlign="center"
+                        app:flow_horizontalAlign="center"
+                        android:layout_marginEnd="8dp" />
+
+                <ImageButton
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:id="@+id/imageButton"
+                        android:background="?android:selectableItemBackgroundBorderless"
+                        app:layout_constraintTop_toTopOf="parent"
+                        android:layout_marginTop="24dp"
+                        android:layout_marginEnd="16dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:paddingTop="4dp"
+                        android:paddingEnd="4dp"
+                        android:paddingRight="4dp"
+                        android:paddingBottom="4dp"
+                        android:paddingLeft="4dp"
+                        android:onClick="onArchiveButton"
+                        android:src="@drawable/ic_baseline_archive_24" />
+
+                <ImageView
+                        android:layout_width="23dp"
+                        android:layout_height="32dp"
+                        app:srcCompat="@drawable/ic_baseline_local_fire_department_24"
+                        android:id="@+id/streakImage"
+                        app:layout_constraintTop_toTopOf="parent"
+                        android:layout_marginTop="24dp"
+                        android:backgroundTint="@color/primaryColor"
+                        app:layout_constraintEnd_toStartOf="@+id/streakCounter" />
+
+                <TextView
+                        android:text="Today "
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/textView2"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:layout_marginStart="16dp"
+                        app:layout_constraintTop_toTopOf="parent"
+                        android:layout_marginTop="16dp"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                        android:fontFamily="@font/montserrat"
+                        android:textAllCaps="false"
+                        style="@style/TextColor"
+                        android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layoutManager="LinearLayoutManager"
+                        android:scrollbars="vertical"
+                        android:id="@+id/rvTasks"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        android:overScrollMode="never"
+                        android:paddingBottom="80dp"
+                        app:layout_constraintTop_toBottomOf="@+id/messageTextView"
+                        android:layout_marginTop="16dp" />
+
+                <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/messageTextView"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:layout_marginStart="16dp"
+                        app:layout_constraintTop_toBottomOf="@+id/textView2"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.core.widget.NestedScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

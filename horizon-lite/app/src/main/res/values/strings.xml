@@ -1,9 +1,0 @@
-<resources>
-    <!-- <string name="app_name">horizon-lite</string> -->
-    <string name="app_name">Sunrise</string>
-    <string name="streak">streak</string>
-    <string name="last_updated">lastUpdated</string>
-    <string name="increase_streak">increaseStreak</string>
-    <string name="streak_task_date">"streakTaskDate"</string>
-    <string name="today_at_least_one_completed">"todayAtLeastOneCompleted"</string>
-</resources>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".activities.MainActivity"
+        android:animateLayoutChanges="true">
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/deleteFAB"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SELECT ALL"
+            app:icon="@drawable/ic_baseline_check_24"
+            android:visibility="invisible"
+            android:onClick="onDeleteFAB"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageButton
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:id="@+id/deleteButton"
+            android:background="?android:selectableItemBackgroundBorderless"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:paddingTop="4dp"
+            android:paddingEnd="4dp"
+            android:paddingRight="4dp"
+            android:paddingBottom="4dp"
+            android:paddingLeft="4dp"
+            android:onClick="onDeleteButton"
+            android:src="@drawable/ic_baseline_delete_24" />
+
+    <ImageButton
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:id="@+id/settingsButton"
+            android:background="?android:selectableItemBackgroundBorderless"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="24dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="4dp"
+            android:paddingRight="4dp"
+            android:paddingBottom="4dp"
+            android:paddingLeft="4dp"
+            android:onClick="onSettingsButton"
+            android:src="@drawable/ic_baseline_settings_24"
+            app:layout_constraintEnd_toStartOf="@+id/deleteButton" />
+
+    <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layoutManager="LinearLayoutManager"
+            android:scrollbars="vertical"
+            android:id="@+id/rvTasks"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintTop_toBottomOf="@+id/textView2"
+            android:layout_marginTop="16dp"
+            android:paddingBottom="16dp"
+            android:overScrollMode="never"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:clipToPadding="false" />
+
+    <TextView
+            android:text="Archive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView2"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="16dp"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="16dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+            android:fontFamily="@font/montserrat"
+            android:textAllCaps="false"
+            style="@style/TextColor"
+            android:textStyle="bold" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
