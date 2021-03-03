@@ -86,6 +86,15 @@ public class ArchiveActivity extends AppCompatActivity {
     }
 
     /**
+     * When the go back button is pressed
+     * @param view
+     */
+    public void onGoBackToMainButton( View view) {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    /**
      * When the settings button is pressed
      * @param view
      */
