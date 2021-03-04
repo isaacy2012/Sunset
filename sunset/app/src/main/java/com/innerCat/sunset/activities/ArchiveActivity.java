@@ -89,7 +89,7 @@ public class ArchiveActivity extends AppCompatActivity {
      * When the go back button is pressed
      * @param view
      */
-    public void onGoBackToMainButton( View view) {
+    public void onGoBackToMainButton( View view ) {
         onBackPressed();
     }
 
@@ -97,7 +97,7 @@ public class ArchiveActivity extends AppCompatActivity {
      * When the settings button is pressed
      * @param view
      */
-    public void onSettingsButton( View view) {
+    public void onSettingsButton( View view ) {
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
@@ -106,7 +106,7 @@ public class ArchiveActivity extends AppCompatActivity {
      * When the delete button is pressed
      * @param view
      */
-    public void onDeleteButton( View view) {
+    public void onDeleteButton( View view ) {
         if (adapter.getTasks().isEmpty() == true) {
             return;
         }

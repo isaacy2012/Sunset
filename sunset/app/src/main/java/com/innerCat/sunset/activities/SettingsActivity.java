@@ -21,6 +21,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         sharedPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
 
+        //Set up the capitalization switch
         Switch capitalizationSwitch = findViewById(R.id.capitalizationSwitch);
         if (sharedPreferences.getBoolean("capitalization", true) == true) {
             capitalizationSwitch.setChecked(true);
@@ -48,10 +49,10 @@ public class SettingsActivity extends AppCompatActivity {
         onBackPressed();
     }
 
-    @Override
     /**
      * When the hardware/software back button is pressed
      */
+    @Override
     public void onBackPressed() {
         finish();
     }
