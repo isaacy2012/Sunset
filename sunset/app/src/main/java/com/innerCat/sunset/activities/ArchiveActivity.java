@@ -90,8 +90,7 @@ public class ArchiveActivity extends AppCompatActivity {
      * @param view
      */
     public void onGoBackToMainButton( View view) {
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+        onBackPressed();
     }
 
     /**

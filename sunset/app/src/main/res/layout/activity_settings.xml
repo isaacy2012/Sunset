@@ -19,19 +19,47 @@
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:gravity="center_vertical"
+                android:layout_marginTop="0dp">
 
-            <TextView
-                    android:text="Preferences"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-                    android:fontFamily="@font/montserrat"
-                    android:textAllCaps="false"
-                    style="@style/TextColor"
-                    android:textStyle="bold" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="0dp"
+                    android:layout_gravity="center_vertical">
+
+                <ImageButton
+                        android:id="@+id/goBackToArchiveButton"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_marginStart="16dp"
+                        android:background="?android:selectableItemBackgroundBorderless"
+                        android:onClick="onGoBackToArchiveButton"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="@+id/textView3"
+                        app:srcCompat="@drawable/ic_baseline_arrow_back_24"
+                        android:layout_weight="0"
+                        android:layout_marginTop="12dp" />
+
+                <TextView
+                        style="@style/TextColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:fontFamily="@font/montserrat"
+                        android:text="Preferences"
+                        android:textAllCaps="false"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toEndOf="@+id/goBackToArchiveButton"
+                        app:layout_constraintTop_toTopOf="parent"
+                        android:textSize="32sp"
+                        android:layout_weight="0"
+                        android:layout_marginLeft="12dp"
+                        android:id="@+id/textView3" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <LinearLayout
                     android:orientation="horizontal"

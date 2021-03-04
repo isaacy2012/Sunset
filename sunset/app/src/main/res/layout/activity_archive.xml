@@ -70,32 +70,33 @@
             android:clipToPadding="false" />
 
     <TextView
-        android:id="@+id/titleText"
-        style="@style/TextColor"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="16dp"
-        android:fontFamily="@font/montserrat"
-        android:text="Archive"
-        android:textAllCaps="false"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-        android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/goBackToMainButton"
-        app:layout_constraintTop_toTopOf="parent" />
+            android:id="@+id/titleText"
+            style="@style/TextColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/montserrat"
+            android:text="Archive"
+            android:textAllCaps="false"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/goBackToMainButton"
+            app:layout_constraintTop_toTopOf="parent"
+            android:textSize="32sp" />
 
     <ImageButton
-        android:id="@+id/goBackToMainButton"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="26dp"
-        android:background="#00FFFFFF"
-        android:onClick="onGoBackToMainButton"
-        android:scaleType="centerCrop"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="?attr/actionModeCloseDrawable" />
+            android:id="@+id/goBackToMainButton"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="16dp"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:onClick="onGoBackToMainButton"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/titleText"
+            app:srcCompat="@drawable/ic_baseline_arrow_back_24"
+            android:layout_marginTop="12dp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

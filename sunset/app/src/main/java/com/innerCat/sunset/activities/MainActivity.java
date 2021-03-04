@@ -20,7 +20,6 @@ import android.text.method.LinkMovementMethod;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -29,7 +28,6 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -575,9 +573,7 @@ public class MainActivity extends AppCompatActivity {
         input.addTextChangedListener(new TextWatcher() {
 
             @Override
-            public void beforeTextChanged( CharSequence s, int start, int count, int after ) {
-
-            }
+            public void beforeTextChanged( CharSequence s, int start, int count, int after ) {}
 
             @Override
             public void onTextChanged( CharSequence s, int start, int before, int count ) {
@@ -589,12 +585,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged( Editable s ) {
-
-            }
+            public void afterTextChanged( Editable s ) {}
         });
-
     }
-
 
 }

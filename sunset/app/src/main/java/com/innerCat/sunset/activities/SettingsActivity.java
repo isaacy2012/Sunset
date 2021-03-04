@@ -3,6 +3,7 @@ package com.innerCat.sunset.activities;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,6 +38,22 @@ public class SettingsActivity extends AppCompatActivity {
             editor.apply();
         });
 
+    }
+
+    /**
+     * When the go back button is pressed
+     * @param view
+     */
+    public void onGoBackToArchiveButton( View view) {
+        onBackPressed();
+    }
+
+    @Override
+    /**
+     * When the hardware/software back button is pressed
+     */
+    public void onBackPressed() {
+        finish();
     }
 
 }
