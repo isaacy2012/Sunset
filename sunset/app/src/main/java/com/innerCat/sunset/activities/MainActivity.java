@@ -21,9 +21,11 @@ import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
@@ -67,56 +69,6 @@ public class MainActivity extends AppCompatActivity {
     @ColumnInfo(defaultValue = "0")
 
     private final int LIST_TASK_REQUEST = 1;
-
-    public void setUpdateSeen(String updateString) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(updateString, true);
-        editor.apply();
-    }
-
-    /**
-     * Show the update dialog, which shows users what the new features in an update are
-     */
-    public void showUpdateDialog() {
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View updateText = inflater.inflate(R.layout.update_text, null);
-        TextView updateTextView = updateText.findViewById(R.id.updateTextView);
-
-        String updateBodyString = getString(R.string.update_1_dot_1);
-        updateTextView.setText(Html.fromHtml(updateBodyString, Html.FROM_HTML_MODE_COMPACT));
-        updateTextView.setMovementMethod(new LinkMovementMethod());
-
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int height = displayMetrics.heightPixels;
-        updateTextView.setMaxHeight(height/2);
-
-        String updateString = ("What's new in version 1.1:");
-
-        builder.setMessage(updateString)
-                .setView(updateText)
-                .setPositiveButton("Ok", ( dialog, id ) -> {
-                    setUpdateSeen("update_1_dot_1");
-                })
-                .setNeutralButton("Leave a review", null);
-        AlertDialog dialog = builder.create();
-        dialog.getWindow().setDimAmount(0.0f);
-        dialog.show();
-        dialog.setOnCancelListener(dialog1 -> {
-            setUpdateSeen("update_1_dot_1");
-        });
-        Button neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-        neutralButton.setOnClickListener(v -> {
-            // dialog doesn't dismiss
-            setUpdateSeen("update_1_dot_1");
-            Intent intent = new Intent();
-            intent.setAction(Intent.ACTION_VIEW);
-            intent.addCategory(Intent.CATEGORY_BROWSABLE);
-            intent.setData(Uri.parse(getString(R.string.google_play_store_listing)));
-            startActivity(intent);
-        });
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -184,6 +136,61 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Set a particular update as seen
+     * @param updateString the update string
+     */
+    private void setUpdateSeen(String updateString) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(updateString, true);
+        editor.apply();
+    }
+
+    /**
+     * Show the update dialog, which shows users what the new features in an update are
+     */
+    private void showUpdateDialog() {
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View updateText = inflater.inflate(R.layout.update_text, null);
+        TextView updateTextView = updateText.findViewById(R.id.updateTextView);
+
+        String updateBodyString = getString(R.string.update_1_dot_1);
+        updateTextView.setText(Html.fromHtml(updateBodyString, Html.FROM_HTML_MODE_COMPACT));
+        updateTextView.setMovementMethod(new LinkMovementMethod());
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = displayMetrics.heightPixels;
+        updateTextView.setMaxHeight(height/2);
+
+        String updateString = ("What's new in version 1.1:");
+
+        builder.setMessage(updateString)
+                .setView(updateText)
+                .setPositiveButton("Ok", ( dialog, id ) -> {
+                    setUpdateSeen("update_1_dot_1");
+                })
+                .setNeutralButton("Leave a review", null);
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setDimAmount(0.0f);
+        dialog.show();
+        dialog.setOnCancelListener(dialog1 -> {
+            setUpdateSeen("update_1_dot_1");
+        });
+        Button neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+        neutralButton.setOnClickListener(v -> {
+            // dialog doesn't dismiss
+            setUpdateSeen("update_1_dot_1");
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.addCategory(Intent.CATEGORY_BROWSABLE);
+            intent.setData(Uri.parse(getString(R.string.google_play_store_listing)));
+            startActivity(intent);
+        });
+    }
+
+
+    /**
      * When the view is resumed
      */
     public void onResume() {
@@ -193,37 +200,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * When the archive button is pressed
-     * @param view
-     */
-    public void onArchiveButton( View view) {
-        Intent intent = new Intent(this, ArchiveActivity.class);
-        adapter.removeAllChecked();
-        startActivityForResult(intent, LIST_TASK_REQUEST);
-    }
-
-
-    /**
-     * When there is a result from an activity
-     * @param requestCode the requestCode
-     * @param resultCode the resultCode
-     * @param data the data from the activity
-     */
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == LIST_TASK_REQUEST) {
-            if(resultCode == RESULT_OK) {
-                ArrayList<Integer> ids = data.getIntegerArrayListExtra("ids");
-                addIds(ids);
-            }
-        }
-    }
-
-    /**
      * Add tasks to the adapter given ids of Tasks *already added* into the database
      * @param ids the ids of the Tasks
      */
-    public void addIds(ArrayList<Integer> ids) {
+    private void addIds(ArrayList<Integer> ids) {
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
@@ -260,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Update the messageTextView
      */
-    public void updateMessage() {
+    private void updateMessage() {
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
@@ -406,49 +386,65 @@ public class MainActivity extends AppCompatActivity {
             if (streak > maxStreak) {
                 streak = maxStreak;
             }
+
+            //Update the highscore
+            if (streak > sharedPreferences.getInt(getString(R.string.highscore), 0)) {
+                editor.putInt(getString(R.string.highscore), streak);
+                editor.apply();
+            }
+
             final int finalStreak = streak;
             //--------------------------------
             handler.post(() -> {
-                TextView streakCounter = findViewById(R.id.streakCounter);
-                String oldStreakText = streakCounter.getText().toString();
-                int oldStreak = -1;
-                try {
-                    oldStreak = Integer.parseInt(oldStreakText);
-                } catch (NumberFormatException ignored) {}
-
-                streakCounter.setText(String.valueOf(finalStreak));
-
-                //if the streak has changed from 0 to >0 or >0 to 0
-                if (((oldStreak > 0) == (finalStreak > 0)) == false) {
-                    //work out the saturation
-                    float sat = 0; //if no streak, no saturation
-                    //otherwise, start from 50%
-                    if (finalStreak > 0) {
-                        sat = (float) (0.5 + (0.5 * (float) finalStreak / 100f));
-                    }
-                    //bounding
-                    if (sat > 1) { sat = 1; }
-                    //set the color
-                    int color = ColorUtils.HSLToColor(new float[]{ 0.25f, sat, 0.45f });
-                    //set both the streakImage and the streakCounter colors
-                    animateStreakToColor(color);
-                }
+                displayStreak(finalStreak);
+                setHighScoreText();
             });
         });
+    }
+
+    /**
+     * Display the streak
+     * @param finalStreak the final streak from updateStreak()
+     */
+    private void displayStreak(int finalStreak) {
+        TextView streakCounter = findViewById(R.id.streakCounter);
+        String oldStreakText = streakCounter.getText().toString();
+        int oldStreak = -1;
+        try {
+            oldStreak = Integer.parseInt(oldStreakText);
+        } catch (NumberFormatException ignored) {}
+
+        streakCounter.setText(String.valueOf(finalStreak));
+
+        //if the streak has changed from 0 to >0 or >0 to 0
+        if (((oldStreak > 0) == (finalStreak > 0)) == false) {
+            //work out the saturation
+            float sat = 0; //if no streak, no saturation
+            //otherwise, start from 50%
+            if (finalStreak > 0) {
+                sat = (float) (0.5 + (0.5 * (float) finalStreak / 100f));
+            }
+            //bounding
+            if (sat > 1) { sat = 1; }
+            //set the color
+            int color = ColorUtils.HSLToColor(new float[]{ 0.25f, sat, 0.45f });
+            //set both the streakImage and the streakCounter colors
+            animateStreakToColor(color);
+        }
     }
 
     /**
      * Animates the color of the streakImage and streakCounter from the current color of the streakCounter to the specified color
      * @param colorTo the new color for the streakImage and streakCounter to be
      */
-    public void animateStreakToColor( int colorTo) {
+    private void animateStreakToColor( int colorTo) {
         TextView streakCounter = findViewById(R.id.streakCounter);
-        ImageView streakImage = findViewById(R.id.streakImage);
-        int colorFrom = defaultColor;
+        ImageButton streakButton = findViewById(R.id.streakButton);
+        int colorFrom = streakCounter.getCurrentTextColor();
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
         colorAnimation.addUpdateListener(animator -> {
             streakCounter.setTextColor((Integer)animator.getAnimatedValue());
-            streakImage.setColorFilter((Integer)animator.getAnimatedValue());
+            streakButton.setColorFilter((Integer)animator.getAnimatedValue());
         });
         colorAnimation.setDuration(ANIMATION_DURATION);
         colorAnimation.start();
@@ -459,7 +455,7 @@ public class MainActivity extends AppCompatActivity {
      * @param todayTasks all of today's tasks
      * @return whether there are tasks AND they are all completed
      */
-    public boolean areAllTasksCompletedAtLeastOne(List<Task> todayTasks) {
+    private boolean areAllTasksCompletedAtLeastOne(List<Task> todayTasks) {
         if (todayTasks.size() > 0) { //if there are tasks today
             for (Task task : todayTasks) {
                 if (task.getComplete() == false) {
@@ -500,7 +496,7 @@ public class MainActivity extends AppCompatActivity {
      * Add a task to the database
      * @param name the name of the task
      */
-    public void addTask(String name) {
+    private void addTask(String name) {
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
@@ -587,6 +583,81 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged( Editable s ) {}
         });
+    }
+
+    /**
+     * When the archive button is pressed
+     * @param view
+     */
+    public void onArchiveButton( View view) {
+        Intent intent = new Intent(this, ArchiveActivity.class);
+        adapter.removeAllChecked();
+        startActivityForResult(intent, LIST_TASK_REQUEST);
+    }
+
+    /**
+     * When the streak button is pressed
+     * @param view
+     */
+    public void onStreakButton( View view ) {
+        TextView highScoreTextView = findViewById(R.id.highScoreTextView);
+        setHighScoreText();
+        if (highScoreTextView.getVisibility() == View.VISIBLE) {
+            Animation slideToRight = AnimationUtils.loadAnimation(this, R.anim.slide_to_right);
+            highScoreTextView.startAnimation(slideToRight);
+            slideToRight.setAnimationListener(new Animation.AnimationListener(){
+                @Override
+                public void onAnimationStart(Animation anim) { }
+                @Override
+                public void onAnimationRepeat(Animation anim) { }
+
+                @Override
+                public void onAnimationEnd(Animation anim) {
+                    highScoreTextView.setVisibility(View.INVISIBLE);
+                }
+            });
+        } else {
+            Animation slideFromRight = AnimationUtils.loadAnimation(this, R.anim.slide_from_right);
+            highScoreTextView.startAnimation(slideFromRight);
+            slideFromRight.setAnimationListener(new Animation.AnimationListener(){
+                @Override
+                public void onAnimationStart(Animation anim) { }
+                @Override
+                public void onAnimationRepeat(Animation anim) { }
+
+                @Override
+                public void onAnimationEnd(Animation anim) {
+                    highScoreTextView.setVisibility(View.VISIBLE);
+                }
+            });
+
+        }
+    }
+
+    /**
+     * Set the high score text
+     */
+    private void setHighScoreText() {
+        TextView highScoreTextView = findViewById(R.id.highScoreTextView);
+        String html = "<b>BEST&nbsp&nbsp</b>" + sharedPreferences.getInt(getString(R.string.highscore), 0);
+        highScoreTextView.setText(Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT));
+    }
+
+
+    /**
+     * When there is a result from an activity
+     * @param requestCode the requestCode
+     * @param resultCode the resultCode
+     * @param data the data from the activity
+     */
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == LIST_TASK_REQUEST) {
+            if(resultCode == RESULT_OK) {
+                ArrayList<Integer> ids = data.getIntegerArrayListExtra("ids");
+                addIds(ids);
+            }
+        }
     }
 
 }

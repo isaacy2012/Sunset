@@ -55,9 +55,9 @@
                         app:flow_verticalAlign="center"
                         app:layout_constraintEnd_toStartOf="@+id/archiveButton"
                         android:height="32dp"
-                        app:layout_constraintBottom_toBottomOf="@+id/streakImage"
-                        android:layout_marginBottom="2dp"
-                        android:gravity="center" />
+                        android:gravity="center"
+                        app:layout_constraintBottom_toBottomOf="@+id/streakButton"
+                        android:layout_marginBottom="2dp" />
 
                 <ImageButton
                     android:id="@+id/archiveButton"
@@ -76,15 +76,16 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <ImageView
-                    android:id="@+id/streakImage"
-                    android:layout_width="23dp"
-                    android:layout_height="32dp"
-                    android:layout_marginTop="24dp"
-                    android:backgroundTint="@color/primaryColor"
-                    app:layout_constraintEnd_toStartOf="@+id/streakCounter"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_baseline_local_fire_department_24" />
+                <ImageButton
+                        android:layout_width="23dp"
+                        android:layout_height="32dp"
+                        android:layout_marginTop="24dp"
+                        app:layout_constraintEnd_toStartOf="@+id/streakCounter"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:srcCompat="@drawable/ic_baseline_local_fire_department_24"
+                        android:background="?android:selectableItemBackgroundBorderless"
+                        android:id="@+id/streakButton"
+                        android:onClick="onStreakButton" />
 
                 <TextView
                     android:id="@+id/titleText"
@@ -124,8 +125,29 @@
                     android:fontFamily="sans-serif"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/titleText" />
+
+                <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toTopOf="parent"
+                        android:layout_marginTop="30dp"
+                        app:layout_constraintEnd_toStartOf="@+id/streakButton">
+
+                    <TextView
+                            android:text="HIGHSCORE 3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/highScoreTextView"
+                            android:textAlignment="textEnd"
+                            android:fontFamily="@font/montserrat"
+                            android:layout_marginRight="8dp"
+                            android:visibility="invisible" />
+                </LinearLayout>
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.core.widget.NestedScrollView>
+
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 
