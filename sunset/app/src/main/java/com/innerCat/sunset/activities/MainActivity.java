@@ -32,7 +32,6 @@ import androidx.core.graphics.ColorUtils;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.ColumnInfo;
-import androidx.room.Room;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -40,9 +39,10 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
 import com.innerCat.sunset.factories.AnimationListenerFactory;
+import com.innerCat.sunset.factories.TaskDatabaseFactory;
 import com.innerCat.sunset.factories.TextWatcherFactory;
 import com.innerCat.sunset.recyclerViews.TasksAdapter;
-import com.innerCat.sunset.room.Converters;
+import com.innerCat.sunset.room.DBMethods;
 import com.innerCat.sunset.room.TaskDatabase;
 import com.innerCat.sunset.widgets.HomeWidgetProvider;
 
@@ -91,11 +91,7 @@ public class MainActivity extends AppCompatActivity {
         defaultColor = messageTextView.getCurrentTextColor();
 
         //initialise the database
-        taskDatabase = Room.databaseBuilder(getApplicationContext(),
-                TaskDatabase.class, "tasks")
-                //.fallbackToDestructiveMigration()
-                .addMigrations(TaskDatabase.MIGRATION_2_3)
-                .build();
+        taskDatabase = TaskDatabaseFactory.getTaskDatabase(this);
 
         //get the recyclerview in activity layout
         rvTasks = findViewById(R.id.rvTasks);
@@ -246,11 +242,11 @@ public class MainActivity extends AppCompatActivity {
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
             //Background work here
-            //NB: This is the new thread in which the database stuff happens
             List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasks();
             final int numTasks = tasks.size();
+
             handler.post(() -> {
-                int textAnimationDuration = 400;
+                int textAnimationDuration = getResources().getInteger(R.integer.text_animation_duration);
                 TextView messageTextView = findViewById(R.id.messageTextView);
                 int colorFrom = defaultColor;
                 String messageText;
@@ -299,101 +295,14 @@ public class MainActivity extends AppCompatActivity {
      * Update the streak
      */
     public void updateStreak() {
-        //ROOM Threads
         updateMessage();
         HomeWidgetProvider.broadcastUpdate(this);
-        final SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
-            int streak = sharedPreferences.getInt(getString(R.string.streak), 0);
-            String lastStreakTaskDateString = sharedPreferences.getString(getString(R.string.streak_task_date), "none");
-
-            //checking that lastStreakDateString is in the past
-            if (lastStreakTaskDateString.equals("none") == false) {
-                LocalDate lastStreakTaskDate = Converters.fromTimestamp(lastStreakTaskDateString);
-                if (DAYS.between(lastStreakTaskDate, LocalDate.now()) < 0) {
-                    editor.putString(getString(R.string.streak_task_date), Converters.dateToTimestamp(LocalDate.now().minusDays(1)));
-                    editor.apply();
-                }
-            }
-
-            //calculate the maximum streak
-            int maxStreak;
-            if (lastStreakTaskDateString.equals("none") == false) { //if there was a previous lastStreakTaskDateString then use that
-                LocalDate lastStreakTaskDate = Converters.fromTimestamp(lastStreakTaskDateString);
-                maxStreak = (int) DAYS.between(lastStreakTaskDate, LocalDate.now()) - 1;
-            } else { //otherwise create one
-                Task lastStreakTask = taskDatabase.taskDao().getLastStreakTask(Converters.dateToTimestamp(LocalDate.now()));
-                if (lastStreakTask != null) { //if there was a previous failed task
-                    //the streak is the difference between the day after that day and today
-                    maxStreak = (int) DAYS.between(lastStreakTask.getDate(), LocalDate.now()) - 1;
-                    if (maxStreak < 0) {maxStreak = 0;}
-                    editor.putString(getString(R.string.streak_task_date), Converters.dateToTimestamp(lastStreakTask.getDate()));
-                } else { //if there were no previous failed tasks
-                    Task firstEverTask = taskDatabase.taskDao().getFirstEverTask();
-                    //if there is a first task
-                    if (firstEverTask != null) { //day difference between the first ever (completed) task and today is the streak
-                        maxStreak = (int) DAYS.between(firstEverTask.getDate(), LocalDate.now()) - 1;
-                        if (maxStreak < 0) {maxStreak = 0;}
-                        editor.putString(getString(R.string.streak_task_date), Converters.dateToTimestamp(firstEverTask.getDate()));
-                    } else {  //if there are no tasks at all ever
-                        maxStreak = 0; //if there are no tasks at all ever, then the streak is 0
-                    }
-                }
-            }
-            if (maxStreak < 0) {maxStreak = 0;}
-
-            //if the streak hasn't been updated today
-            LocalDate lastUpdated = Converters.fromTimestamp(sharedPreferences.getString(getString(R.string.last_updated), Converters.dateToTimestamp(LocalDate.ofEpochDay(0))));
-            if (DAYS.between(lastUpdated, LocalDate.now()) != 0) {
-                //if yesterday indicated that the streak should be increased
-                List<Task> yesterdayTasks = taskDatabase.taskDao().getDayTasks(Converters.dateToTimestamp(LocalDate.now().minusDays(1)));
-                if (areAllTasksCompletedAtLeastOne(yesterdayTasks) == true) {
-                    streak = streak + 1;
-                    if (streak > maxStreak) {
-                        streak = maxStreak;
-                    }
-                    editor.putInt(getString(R.string.streak), streak);
-                } else { //if the streak should not have been increased
-                    //if any of the tasks yesterday were failed AND there were tasks yesterday
-                    if (areAllTasksCompletedAtLeastOne(yesterdayTasks) == false && yesterdayTasks.size() > 0) {
-                        //reset streak
-                        streak = 0;
-                        editor.putInt(getString(R.string.streak), streak);
-                        editor.putString(getString(R.string.streak_task_date), Converters.dateToTimestamp(LocalDate.now().minusDays(1)));
-                    }
-                    //otherwise the streak is the same
-                }
-                //reset yesterdays "today tasks completed"
-                if (sharedPreferences.getBoolean(getString(R.string.today_at_least_one_completed), false) == true) {
-                    editor.putBoolean(getString(R.string.today_at_least_one_completed), false);
-                }
-
-                //update the "last updated" date to today
-                editor.putString(getString(R.string.last_updated), Converters.dateToTimestamp(LocalDate.now()));
-                editor.apply();
-            }
-
-            //if all tasks have been completed today
-            List<Task> todayTasks = taskDatabase.taskDao().getDayTasks(Converters.dateToTimestamp(LocalDate.now()));
-            if (areAllTasksCompletedAtLeastOne(todayTasks) == true) {
-                maxStreak = maxStreak+1;
-                streak = streak+1;
-            }
-
-            //if the new streak is greater than the maximum theoretical streak, then set it to the max
-            if (streak > maxStreak) {
-                streak = maxStreak;
-            }
-
-            //Update the highscore
-            if (streak > sharedPreferences.getInt(getString(R.string.highscore), 0)) {
-                editor.putInt(getString(R.string.highscore), streak);
-                editor.apply();
-            }
-
-            final int finalStreak = streak;
+            final int finalStreak = DBMethods.updateAndGetStreak(this, taskDatabase);
             //--------------------------------
             handler.post(() -> {
                 displayStreak(finalStreak);
@@ -401,6 +310,7 @@ public class MainActivity extends AppCompatActivity {
             });
         });
     }
+
 
     /**
      * Display the streak
@@ -450,26 +360,6 @@ public class MainActivity extends AppCompatActivity {
         colorAnimation.start();
     }
 
-    /**
-     * Returns whether all of today's tasks were completed AND if there were tasks today
-     * @param todayTasks all of today's tasks
-     * @return whether there are tasks AND they are all completed
-     */
-    private boolean areAllTasksCompletedAtLeastOne(List<Task> todayTasks) {
-        if (todayTasks.size() > 0) { //if there are tasks today
-            for (Task task : todayTasks) {
-                if (task.getComplete() == false) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            if (sharedPreferences.getBoolean(getString(R.string.today_at_least_one_completed), false) == true) {
-                return true;
-            }
-        }
-        return false;
-    }
 
 
     /**
@@ -524,13 +414,15 @@ public class MainActivity extends AppCompatActivity {
     public void fabButton(View view) {
 
         // Use the Builder class for convenient dialog construction
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
+
+        //get the UI elements
         FloatingActionButton fab = findViewById(R.id.floatingActionButton);
         fab.setVisibility(View.INVISIBLE);
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View editTextView = inflater.inflate(R.layout.text_input, null);
+        View editTextView = LayoutInflater.from(this).inflate(R.layout.text_input, null);
         EditText input = editTextView.findViewById(R.id.editName);
 
+        //Set the capitalisation from sharedPreferences
         if (sharedPreferences.getBoolean("capitalization", true) == true) {
             input.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         } else {

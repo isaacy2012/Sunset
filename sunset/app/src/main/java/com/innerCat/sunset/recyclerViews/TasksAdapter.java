@@ -1,9 +1,9 @@
 package com.innerCat.sunset.recyclerViews;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +17,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
 import com.innerCat.sunset.activities.MainActivity;
@@ -115,35 +116,47 @@ public class TasksAdapter extends
             int position = getAdapterPosition(); // gets item position
             if (position != RecyclerView.NO_POSITION) { // Check if an item was deleted, but the user clicked it before the UI removed it
                 Task task = tasks.get(position);
-                // We can access the data within the views
+                // Use the Builder class for convenient dialog construction
                 MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context, R.style.MaterialAlertDialog_Rounded);
-                LayoutInflater inflater = LayoutInflater.from(context);
-                View editTextView = inflater.inflate(R.layout.text_input, null);
+
+                //get the UI elements
+                FloatingActionButton fab = ((MainActivity)context).findViewById(R.id.floatingActionButton);
+                fab.setVisibility(View.INVISIBLE);
+                View editTextView = LayoutInflater.from(context).inflate(R.layout.text_input, null);
                 EditText input = editTextView.findViewById(R.id.editName);
-                input.setText(task.getName());
+
+                //Set the capitalisation from sharedPreferences
+                if (context.getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("capitalization", true) == true) {
+                    input.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+                } else {
+                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+                }
+
                 input.requestFocus();
 
                 builder.setMessage("Name")
                         .setView(editTextView)
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            public void onClick( DialogInterface dialog, int id ) {
-                                //get the name of the Task to add
-                                String newName = input.getText().toString();
-                                //add the task
-                                task.setName(newName);
-                                ((MainActivity) context).updateTask(task, position);
-                            }
+                        .setPositiveButton("Ok", ( dialog, id ) -> {
+                            //get the name of the Task to edit
+                            String newName = input.getText().toString();
+                            //edit the task
+                            task.setName(newName);
+                            ((MainActivity) context).updateTask(task, position);
                         })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            public void onClick( DialogInterface dialog, int id ) {
-                                // User cancelled the dialog
-                            }
+                        .setNegativeButton("Cancel", ( dialog, id ) -> {
+                            // User cancelled the dialog
+                            fab.setVisibility(View.VISIBLE);
                         });
                 AlertDialog dialog = builder.create();
+                dialog.setOnCancelListener(dialog1 -> {
+                    // dialog dismisses
+                    fab.setVisibility(View.VISIBLE);
+                });
                 dialog.getWindow().setDimAmount(0.0f);
                 dialog.show();
                 dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
                 Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                okButton.setEnabled(false);
                 input.addTextChangedListener(TextWatcherFactory.getNonEmptyTextWatcher(input, okButton));
             }
         }

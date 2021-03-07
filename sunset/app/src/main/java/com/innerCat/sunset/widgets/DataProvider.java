@@ -9,38 +9,34 @@ import android.text.style.ForegroundColorSpan;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
-import androidx.room.Room;
-
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
-import com.innerCat.sunset.room.TaskDatabase;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.innerCat.sunset.activities.MainActivity.taskDatabase;
 import static java.time.temporal.ChronoUnit.DAYS;
 
 
 public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
 
+    //formatted task strings
     List<SpannableStringBuilder> tasks = new ArrayList<>();
     Context context = null;
-    TaskDatabase taskDatabase;
 
     public DataProvider(Context context, Intent intent) {
         this.context = context;
-        taskDatabase = Room.databaseBuilder(context.getApplicationContext(),
-                TaskDatabase.class, "tasks")
-                //.fallbackToDestructiveMigration()
-                .addMigrations(TaskDatabase.MIGRATION_2_3)
-                .build();
     }
 
     @Override
     public void onCreate() {
     }
 
+    /**
+     * When the dataset is changed
+     */
     @Override
     public void onDataSetChanged() {
         tasks.clear();

@@ -14,12 +14,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
+import com.innerCat.sunset.factories.TaskDatabaseFactory;
 import com.innerCat.sunset.recyclerViews.ArchiveTasksAdapter;
 import com.innerCat.sunset.room.Converters;
 import com.innerCat.sunset.room.TaskDatabase;
@@ -46,7 +46,7 @@ public class ArchiveActivity extends AppCompatActivity {
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate( Bundle savedInstanceState ) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_archive);
 
@@ -60,11 +60,7 @@ public class ArchiveActivity extends AppCompatActivity {
         deleteButton = findViewById(R.id.deleteButton);
 
         //initialise the database
-        taskDatabase = Room.databaseBuilder(getApplicationContext(),
-                TaskDatabase.class, "tasks")
-                //.fallbackToDestructiveMigration()
-                .addMigrations(TaskDatabase.MIGRATION_2_3)
-                .build();
+        taskDatabase = TaskDatabaseFactory.getTaskDatabase(this);
 
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -87,6 +83,7 @@ public class ArchiveActivity extends AppCompatActivity {
 
     /**
      * When the go back button is pressed
+     *
      * @param view
      */
     public void onGoBackToMainButton( View view ) {
@@ -95,6 +92,7 @@ public class ArchiveActivity extends AppCompatActivity {
 
     /**
      * When the settings button is pressed
+     *
      * @param view
      */
     public void onSettingsButton( View view ) {
@@ -104,6 +102,7 @@ public class ArchiveActivity extends AppCompatActivity {
 
     /**
      * When the delete button is pressed
+     *
      * @param view
      */
     public void onDeleteButton( View view ) {
@@ -119,9 +118,10 @@ public class ArchiveActivity extends AppCompatActivity {
 
     /**
      * When the deleteFAB is pressed
+     *
      * @param view
      */
-    public void onDeleteFAB(View view) {
+    public void onDeleteFAB( View view ) {
         if (deleteTasks.size() == 0) { //if there are no items in the deleteTasks list then the deleteFAB acts as a 'select all' button
             selectAllMode = true;
             adapter.selectAll(this);
@@ -132,7 +132,7 @@ public class ArchiveActivity extends AppCompatActivity {
 
             builder.setMessage("Are you sure you wish to delete " + deleteTasks.size() + " " + (deleteTasks.size() > 1 ? "tasks" : "task") + "?")
                     .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
+                        public void onClick( DialogInterface dialog, int id ) {
                             deleteMode = false;
                             selectAllMode = false;
                             rvTasks.setPadding(0, 0, 0, Converters.fromDpToPixels(16, getResources()));
@@ -157,7 +157,7 @@ public class ArchiveActivity extends AppCompatActivity {
                         }
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
+                        public void onClick( DialogInterface dialog, int id ) {
                             // cancelled
                         }
                     });
@@ -171,7 +171,7 @@ public class ArchiveActivity extends AppCompatActivity {
     /**
      * Check the status of the extended FAB
      */
-    public void checkFAB(boolean back) {
+    public void checkFAB( boolean back ) {
         if (deleteTasks.size() != 0) {
             if (deleteFAB.getText().equals("DELETE") == false) {
                 deleteFAB.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_baseline_delete_24));
@@ -208,18 +208,20 @@ public class ArchiveActivity extends AppCompatActivity {
 
     /**
      * Add a task to the deletion list
+     *
      * @param task the task to add
      */
-    public void addDeleteTask(Task task) {
+    public void addDeleteTask( Task task ) {
         deleteTasks.add(task);
         checkFAB(true);
     }
 
     /**
      * Remove a task to the deletion list
+     *
      * @param task the task to remove
      */
-    public void removeDeleteTask(Task task) {
+    public void removeDeleteTask( Task task ) {
         deleteTasks.remove(task);
         checkFAB(true);
     }
@@ -227,6 +229,7 @@ public class ArchiveActivity extends AppCompatActivity {
 
     /**
      * Repeat a task to the database
+     *
      * @param task the task to repeat
      */
     public void repeatTask( Task task ) {
@@ -237,10 +240,10 @@ public class ArchiveActivity extends AppCompatActivity {
             //Background work here
             taskDatabase.taskDao().removeById(task.getId());
             Task newTask = new Task(task.getName());
-            newTask.setRepeatTimes(task.getRepeatTimes()+1);
+            newTask.setRepeatTimes(task.getRepeatTimes() + 1);
             long id = taskDatabase.taskDao().insert(newTask);
             newTask.setId((int) id);
-            idsToReplay.add((int)id);
+            idsToReplay.add((int) id);
             handler.post(() -> {
                 HomeWidgetProvider.broadcastUpdate(this);
             });

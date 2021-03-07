@@ -9,11 +9,21 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class Converters {
+    /**
+     * Convert from a timestamp String to a LocalDate (with date ONLY)
+     * @param value the String to convert
+     * @return the LocalDate
+     */
     @TypeConverter
     public static LocalDate fromTimestamp( String value ) {
         return LocalDate.parse(value);
     }
 
+    /**
+     * Converts the date to a String timestamp
+     * @param date the date (LocalDate with date ONLY)
+     * @return the timestamp as a String
+     */
     @TypeConverter
     public static String dateToTimestamp( LocalDate date ) {
         if (date == null) {
