@@ -33,6 +33,13 @@ public class Converters {
     }
 
     /**
+     * @return Today's dateString
+     */
+    public static String todayString() {
+        return dateToTimestamp(LocalDate.now());
+    }
+
+    /**
      * Converts dp to pixels. Used for setting padding programmatically and responsively
      *
      * @param dp the dp

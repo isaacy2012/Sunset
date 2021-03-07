@@ -42,6 +42,8 @@ import com.innerCat.sunset.factories.AnimationListenerFactory;
 import com.innerCat.sunset.factories.TaskDatabaseFactory;
 import com.innerCat.sunset.factories.TextWatcherFactory;
 import com.innerCat.sunset.recyclerViews.TasksAdapter;
+import com.innerCat.sunset.recyclerViews.TomorrowTasksAdapter;
+import com.innerCat.sunset.room.Converters;
 import com.innerCat.sunset.room.DBMethods;
 import com.innerCat.sunset.room.TaskDatabase;
 import com.innerCat.sunset.widgets.HomeWidgetProvider;
@@ -62,7 +64,9 @@ public class MainActivity extends AppCompatActivity {
     //private fields for the Dao and the Database
     public static TaskDatabase taskDatabase;
     RecyclerView rvTasks;
+    RecyclerView rvTasksTomorrow;
     TasksAdapter adapter;
+    TomorrowTasksAdapter tomorrowAdapter;
     SharedPreferences sharedPreferences;
     int defaultColor;
 
@@ -96,11 +100,19 @@ public class MainActivity extends AppCompatActivity {
         //get the recyclerview in activity layout
         rvTasks = findViewById(R.id.rvTasks);
 
+        //get the recyclerview of tomorrow
+        rvTasksTomorrow = findViewById(R.id.rvTasksTomorrow);
+
         //get the swipeRefreshLayout
         final SwipeRefreshLayout swipeRefreshLayout= findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(() -> {
             adapter.removeAllChecked();
+            checkRvTasksVisibility();
+            tomorrowAdapter.removeAllChecked();
+            checkRvTasksTomorrowVisibility();
+
             adapter.notifyDataSetChanged();
+            tomorrowAdapter.notifyDataSetChanged();
             swipeRefreshLayout.setRefreshing(false);
         });
 
@@ -110,7 +122,8 @@ public class MainActivity extends AppCompatActivity {
         executor.execute(() -> {
             //Background work here
             //NB: This is the new thread in which the database stuff happens
-            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasks();
+            //today rvTask
+            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday(Converters.todayString());
             for (int i = 0; i < tasks.size(); i++) {
                 if (DAYS.between(tasks.get(i).getDate(), LocalDate.now()) != 0) {
                     Task task = tasks.get(i);
@@ -119,6 +132,10 @@ public class MainActivity extends AppCompatActivity {
                     tasks.add(0, task);
                 }
             }
+
+            //tomorrow rvTask
+            List<Task> tomorrowTasks = taskDatabase.taskDao().getAllTasksOnDate(Converters.dateToTimestamp(LocalDate.now().plusDays(1)));
+
             handler.post(() -> {
                 // Create adapter passing in the sample user data
                 adapter = new TasksAdapter(tasks);
@@ -126,10 +143,37 @@ public class MainActivity extends AppCompatActivity {
                 rvTasks.setAdapter(adapter);
                 // Set layout manager to position the items
                 rvTasks.setLayoutManager(new LinearLayoutManager(this));
-                // That's all!
+                checkRvTasksVisibility();
+
+                //tomorrow adapter
+                tomorrowAdapter = new TomorrowTasksAdapter(tomorrowTasks);
+                // Create adapter passing in the sample user data
+                rvTasksTomorrow.setAdapter(tomorrowAdapter);
+                // Set layout manager to position the items
+                rvTasksTomorrow.setLayoutManager(new LinearLayoutManager(this));
+
+                checkRvTasksTomorrowVisibility();
             });
         });
     }
+
+    /**
+     * set the visibility of tomorrow recyclerView and title
+     * @param visibility the visibility
+     */
+    private void setTomorrowVisibility(int visibility) {
+        View divider = findViewById(R.id.tomorrowDivider);
+        TextView tomorrowTextView = findViewById(R.id.tomorrowTextView);
+        divider.setVisibility(visibility);
+        tomorrowTextView.setVisibility(visibility);
+        rvTasksTomorrow.setVisibility(visibility);
+        if (visibility == View.GONE) {
+            rvTasks.setPadding(0, 16, 0, 80);
+        } else {
+            rvTasks.setPadding(0, 16, 0, 0);
+        }
+    }
+
 
     /**
      * Set a particular update as seen
@@ -139,6 +183,28 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean(updateString, true);
         editor.apply();
+    }
+
+    /**
+     * check and set the visibility of rvTasks according to the tasks
+     */
+    private void checkRvTasksVisibility() {
+        if (adapter.getItemCount() == 0) {
+            rvTasks.setVisibility(View.GONE);
+        } else {
+            rvTasks.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * check and set the visibility of rvTasksTomorrow according to the tasks for tomorrow
+     */
+    private void checkRvTasksTomorrowVisibility() {
+        if (tomorrowAdapter.getItemCount() == 0) {
+            setTomorrowVisibility(View.GONE);
+        } else {
+            setTomorrowVisibility(View.VISIBLE);
+        }
     }
 
     /**
@@ -217,6 +283,7 @@ public class MainActivity extends AppCompatActivity {
                     adapter.addTask(0, addTask);
                     adapter.notifyItemInserted(0);
                 }
+                checkRvTasksVisibility();
             });
         });
     }
@@ -242,7 +309,7 @@ public class MainActivity extends AppCompatActivity {
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
             //Background work here
-            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasks();
+            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday(Converters.todayString());
             final int numTasks = tasks.size();
 
             handler.post(() -> {
@@ -404,7 +471,58 @@ public class MainActivity extends AppCompatActivity {
                 //rvTasks.scheduleLayoutAnimation();
                 rvTasks.scrollToPosition(0);
                 //rvTasks.scheduleLayoutAnimation();
+                checkRvTasksVisibility();
                 updateStreak();
+            });
+        });
+    }
+
+    /**
+     * Add a task to tomorrow
+     * @param name the name of the task to add
+     */
+    public void addTaskTomorrow(String name) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Add it in the background without refreshing the RVTasks
+            //get the name of the Task to add
+            //Background work here
+            Task task = new Task(name, LocalDate.now().plusDays(1));
+            long taskId = taskDatabase.taskDao().insert(task);
+            task.setId((int) taskId);
+            handler.post(() -> {
+                //UI Thread work here
+                // Add a new task
+                tomorrowAdapter.addTask(0, task);
+                // Notify the adapter that an item was inserted at position 0
+                tomorrowAdapter.notifyItemInserted(0);
+                rvTasksTomorrow.scrollToPosition(0);
+                if (rvTasksTomorrow.getVisibility() == View.GONE) {
+                    setTomorrowVisibility(View.VISIBLE);
+                }
+            });
+        });
+    }
+
+    /**
+     * Delete a task from tomorrow
+     * @param task
+     * @param position
+     */
+    public void deleteTaskFromTomorrow( Task task, int position) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            taskDatabase.taskDao().removeById(task.getId());
+            handler.post(() -> {
+                //UI Thread work here
+                //tell the adapter that the task has been removed
+                tomorrowAdapter.notifyItemRemoved(position);
+                if (tomorrowAdapter.getItemCount() == 0) {
+                    setTomorrowVisibility(View.GONE);
+                }
             });
         });
     }
@@ -447,6 +565,14 @@ public class MainActivity extends AppCompatActivity {
                         // User cancelled the dialog
                         fab.setVisibility(View.VISIBLE);
                     }
+                })
+                .setNeutralButton("Tomorrow", new DialogInterface.OnClickListener() {
+                    public void onClick( DialogInterface dialog, int id ) {
+                        String name = input.getText().toString();
+                        addTaskTomorrow(name);
+                        //reenable the FAB
+                        fab.setVisibility(View.VISIBLE);
+                    }
                 });
         AlertDialog dialog = builder.create();
         dialog.setOnCancelListener(dialog1 -> {
@@ -457,8 +583,10 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button tomorrowButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
         okButton.setEnabled(false);
-        input.addTextChangedListener(TextWatcherFactory.getNonEmptyTextWatcher(input, okButton));
+        tomorrowButton.setEnabled(false);
+        input.addTextChangedListener(TextWatcherFactory.getNonEmptyTextWatcher(input, okButton, tomorrowButton));
     }
 
     /**
@@ -468,6 +596,9 @@ public class MainActivity extends AppCompatActivity {
     public void onArchiveButton( View view) {
         Intent intent = new Intent(this, ArchiveActivity.class);
         adapter.removeAllChecked();
+        checkRvTasksVisibility();
+        tomorrowAdapter.removeAllChecked();
+        checkRvTasksTomorrowVisibility();
         startActivityForResult(intent, LIST_TASK_REQUEST);
     }
 

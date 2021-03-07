@@ -11,12 +11,14 @@ import android.widget.RemoteViewsService;
 
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
+import com.innerCat.sunset.factories.TaskDatabaseFactory;
+import com.innerCat.sunset.room.Converters;
+import com.innerCat.sunset.room.TaskDatabase;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.innerCat.sunset.activities.MainActivity.taskDatabase;
 import static java.time.temporal.ChronoUnit.DAYS;
 
 
@@ -40,7 +42,8 @@ public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
     @Override
     public void onDataSetChanged() {
         tasks.clear();
-        List<Task> incompleteTasks = taskDatabase.taskDao().getAllUncompletedTasks();
+        TaskDatabase taskDatabase = TaskDatabaseFactory.getTaskDatabase(context);
+        List<Task> incompleteTasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday(Converters.todayString());
         //formatting the tasks
         for (int i = 0; i < incompleteTasks.size(); i++) {
             if (DAYS.between(incompleteTasks.get(i).getDate(), LocalDate.now()) != 0) {

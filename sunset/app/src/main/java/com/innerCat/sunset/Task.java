@@ -3,6 +3,7 @@ package com.innerCat.sunset;
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import com.innerCat.sunset.room.Converters;
@@ -28,11 +29,25 @@ public class Task implements Comparable<Task> {
     private int repeatTimes = 0;
 
 
-    //constructor
+    /**
+     * Constructor
+     * @param name the name of the task
+     */
     public Task( String name ) {
         this.name = name;
         this.date = LocalDate.now();
 
+    }
+
+    /**
+     * Constructor with specified date
+     * @param name the name of the task
+     * @param date the specified date
+     */
+    @Ignore
+    public Task( String name, LocalDate date ) {
+        this.name = name;
+        this.date = date;
     }
 
 

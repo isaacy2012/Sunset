@@ -68,7 +68,7 @@ public class ArchiveActivity extends AppCompatActivity {
         executor.execute(() -> {
             //Background work here
             //NB: This is the new thread in which the database stuff happens
-            List<Task> tasks = taskDatabase.taskDao().getAllCompletedTasks();
+            List<Task> tasks = taskDatabase.taskDao().getAllCompletedTasksBeforeAndToday(Converters.todayString());
             handler.post(() -> {
                 // Create adapter passing in the sample user data
                 adapter = new ArchiveTasksAdapter(tasks);

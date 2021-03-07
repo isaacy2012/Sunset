@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.activities.MainActivity;
 import com.innerCat.sunset.factories.TaskDatabaseFactory;
+import com.innerCat.sunset.room.Converters;
 import com.innerCat.sunset.room.TaskDatabase;
 
 import java.util.concurrent.ExecutorService;
@@ -70,7 +71,7 @@ public class HomeWidgetProvider extends AppWidgetProvider {
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
             //Background work here
-            final int num = taskDatabase.taskDao().getNumberOfAllUncompletedTasks();
+            final int num = taskDatabase.taskDao().getNumberOfAllUncompletedTasksBeforeAndToday(Converters.todayString());
             handler.post(() -> {
                 // Instruct the widget manager to update the widget
                 views.setTextViewText(R.id.appwidget_num, String.valueOf(num));

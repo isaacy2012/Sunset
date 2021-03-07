@@ -80,24 +80,32 @@ public interface TaskDao {
      *
      * @return all the uncompleted Tasks in the database as a List
      */
-    @Query("SELECT * FROM tasks WHERE complete = 0 ORDER BY id DESC")
-    public List<Task> getAllUncompletedTasks();
+    @Query("SELECT * FROM tasks WHERE (complete = 0 AND julianday(date) <= julianday(:today)) ORDER BY id DESC")
+    public List<Task> getAllUncompletedTasksBeforeAndToday( String today );
 
     /**
      * Returns all uncompleted Tasks as a List
      *
      * @return all the uncompleted Tasks in the database as a List
      */
-    @Query("SELECT COUNT(*) FROM tasks WHERE complete = 0")
-    public int getNumberOfAllUncompletedTasks();
+    @Query("SELECT COUNT(*) FROM tasks WHERE (complete = 0 AND julianday(date) <= julianday(:today))")
+    public int getNumberOfAllUncompletedTasksBeforeAndToday( String today );
 
     /**
      * Returns all completed Tasks as a List
      *
      * @return all the completed Tasks in the database as a List
      */
-    @Query("SELECT * FROM tasks WHERE complete = 1 ORDER BY id DESC")
-    public List<Task> getAllCompletedTasks();
+    @Query("SELECT * FROM tasks WHERE (complete = 1 AND julianday(date) <= julianday(:today)) ORDER BY id DESC")
+    public List<Task> getAllCompletedTasksBeforeAndToday( String today );
+
+    /**
+     * Returns all completed Tasks as a List
+     *
+     * @return all the completed Tasks in the database as a List
+     */
+    @Query("SELECT * FROM tasks WHERE julianday(date) = julianday(:date) ORDER BY id DESC")
+    public List<Task> getAllTasksOnDate( String date );
 
     /**
      * Returns all Entries that match the name
