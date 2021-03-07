@@ -12,10 +12,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
-import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -41,6 +39,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
+import com.innerCat.sunset.factories.AnimationListenerFactory;
+import com.innerCat.sunset.factories.TextWatcherFactory;
 import com.innerCat.sunset.recyclerViews.TasksAdapter;
 import com.innerCat.sunset.room.Converters;
 import com.innerCat.sunset.room.TaskDatabase;
@@ -566,23 +566,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
         okButton.setEnabled(false);
-        input.addTextChangedListener(new TextWatcher() {
-
-            @Override
-            public void beforeTextChanged( CharSequence s, int start, int count, int after ) {}
-
-            @Override
-            public void onTextChanged( CharSequence s, int start, int before, int count ) {
-                if (input.getText().toString().trim().length() > 0) {
-                    okButton.setEnabled(true);
-                } else {
-                    okButton.setEnabled(false);
-                }
-            }
-
-            @Override
-            public void afterTextChanged( Editable s ) {}
-        });
+        input.addTextChangedListener(TextWatcherFactory.getNonEmptyTextWatcher(input, okButton));
     }
 
     /**
@@ -605,32 +589,11 @@ public class MainActivity extends AppCompatActivity {
         if (highScoreTextView.getVisibility() == View.VISIBLE) {
             Animation slideToRight = AnimationUtils.loadAnimation(this, R.anim.slide_to_right);
             highScoreTextView.startAnimation(slideToRight);
-            slideToRight.setAnimationListener(new Animation.AnimationListener(){
-                @Override
-                public void onAnimationStart(Animation anim) { }
-                @Override
-                public void onAnimationRepeat(Animation anim) { }
-
-                @Override
-                public void onAnimationEnd(Animation anim) {
-                    highScoreTextView.setVisibility(View.INVISIBLE);
-                }
-            });
+            slideToRight.setAnimationListener(AnimationListenerFactory.getAnimationListener(highScoreTextView, View.INVISIBLE));
         } else {
             Animation slideFromRight = AnimationUtils.loadAnimation(this, R.anim.slide_from_right);
             highScoreTextView.startAnimation(slideFromRight);
-            slideFromRight.setAnimationListener(new Animation.AnimationListener(){
-                @Override
-                public void onAnimationStart(Animation anim) { }
-                @Override
-                public void onAnimationRepeat(Animation anim) { }
-
-                @Override
-                public void onAnimationEnd(Animation anim) {
-                    highScoreTextView.setVisibility(View.VISIBLE);
-                }
-            });
-
+            slideFromRight.setAnimationListener(AnimationListenerFactory.getAnimationListener(highScoreTextView, View.VISIBLE));
         }
     }
 

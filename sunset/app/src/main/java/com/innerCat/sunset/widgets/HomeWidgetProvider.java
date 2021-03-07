@@ -28,14 +28,15 @@ public class HomeWidgetProvider extends AppWidgetProvider {
 
     static TaskDatabase taskDatabase;
 
-    public static void broadcastUpdate(Context context) {
-            Intent intent = new Intent(context, HomeWidgetProvider.class);
-            //update intent
-            intent.setAction("android.appwidget.action.APPWIDGET_UPDATE");
-            //ids of widgets
-            int[] ids = AppWidgetManager.getInstance(context.getApplicationContext()).getAppWidgetIds(new ComponentName(context.getApplicationContext(), HomeWidgetProvider.class));;
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
-            context.sendBroadcast(intent);
+    public static void broadcastUpdate( Context context ) {
+        Intent intent = new Intent(context, HomeWidgetProvider.class);
+        //update intent
+        intent.setAction("android.appwidget.action.APPWIDGET_UPDATE");
+        //ids of widgets
+        int[] ids = AppWidgetManager.getInstance(context.getApplicationContext()).getAppWidgetIds(new ComponentName(context.getApplicationContext(), HomeWidgetProvider.class));
+        ;
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+        context.sendBroadcast(intent);
     }
 
     static void updateAppWidget( Context context, AppWidgetManager appWidgetManager,
@@ -96,7 +97,7 @@ public class HomeWidgetProvider extends AppWidgetProvider {
         initDatabase(context);
     }
 
-    public static void initDatabase(Context context) {
+    public static void initDatabase( Context context ) {
         //initialise the database
         taskDatabase = Room.databaseBuilder(context,
                 TaskDatabase.class, "tasks")
@@ -111,7 +112,7 @@ public class HomeWidgetProvider extends AppWidgetProvider {
         taskDatabase = null;
     }
 
-    private static void setRemoteAdapter(Context context, @NonNull final RemoteViews views) {
+    private static void setRemoteAdapter( Context context, @NonNull final RemoteViews views ) {
         views.setRemoteAdapter(R.id.widgetListView,
                 new Intent(context, WidgetService.class));
     }
