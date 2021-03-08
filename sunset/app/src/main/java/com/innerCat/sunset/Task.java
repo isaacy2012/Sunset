@@ -1,6 +1,6 @@
 package com.innerCat.sunset;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
@@ -22,8 +22,9 @@ public class Task implements Comparable<Task> {
     private int id = 0;
     private String name;
     private LocalDate date;
-    private boolean complete = false;
-    private boolean late = false;
+
+    @Nullable
+    private LocalDate completeDate;
 
     @ColumnInfo(defaultValue = "0")
     private int repeatTimes = 0;
@@ -36,7 +37,6 @@ public class Task implements Comparable<Task> {
     public Task( String name ) {
         this.name = name;
         this.date = LocalDate.now();
-
     }
 
     /**
@@ -69,7 +69,7 @@ public class Task implements Comparable<Task> {
     }
 
     public LocalDate getDate() {
-        return date;
+        return this.date;
     }
 
     public void setDate( LocalDate date ) {
@@ -80,29 +80,41 @@ public class Task implements Comparable<Task> {
         return Converters.dateToTimestamp(this.date);
     }
 
-    public void setComplete( boolean complete ) {
-        this.complete = complete;
-    }
-
     public void toggleComplete() {
-        this.complete = (this.complete == false);
-        if (this.complete == true) {
-            if ((int)DAYS.between(this.date, LocalDate.now()) != 0) {
-                late = true;
-            }
+        if (this.completeDate == null) {
+            this.completeDate = LocalDate.now();
+        } else {
+            this.completeDate = null;
         }
     }
 
     public boolean getComplete() {
-        return this.complete;
+        return (this.completeDate != null);
     }
+
+    @Nullable
+    public LocalDate getCompleteDate() {
+        return this.completeDate;
+    }
+
+    public void setCompleteDate( @Nullable LocalDate completeDate) {
+        this.completeDate = completeDate;
+    }
+
+
 
     public boolean isLate() {
-        return this.late;
+        if (this.completeDate == null) {
+            return false;
+        }
+        return (DAYS.between(this.date, this.completeDate) != 0);
     }
 
-    public void setLate( boolean late ) {
-        this.late = late;
+    public boolean completedToday() {
+        if (this.completeDate == null) {
+            return false;
+        }
+        return (DAYS.between(LocalDate.now(), this.completeDate) == 0);
     }
 
     public void setRepeatTimes(int repeatTimes) {

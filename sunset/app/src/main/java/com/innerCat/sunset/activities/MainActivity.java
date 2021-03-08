@@ -123,9 +123,10 @@ public class MainActivity extends AppCompatActivity {
             //Background work here
             //NB: This is the new thread in which the database stuff happens
             //today rvTask
-            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday(Converters.todayString());
+            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday();
+
             for (int i = 0; i < tasks.size(); i++) {
-                if (DAYS.between(tasks.get(i).getDate(), LocalDate.now()) != 0) {
+                if (DAYS.between(tasks.get(i).getDate(), LocalDate.now()) > 0) {
                     Task task = tasks.get(i);
                     //noinspection SuspiciousListRemoveInLoop since we are adding it back at index 0
                     tasks.remove(i);
@@ -258,6 +259,7 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         updateStreak();
+        checkStreakColor(false);
     }
 
 
@@ -309,7 +311,8 @@ public class MainActivity extends AppCompatActivity {
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
             //Background work here
-            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday(Converters.todayString());
+            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday();
+
             final int numTasks = tasks.size();
 
             handler.post(() -> {
@@ -393,21 +396,74 @@ public class MainActivity extends AppCompatActivity {
 
         streakCounter.setText(String.valueOf(finalStreak));
 
+    }
+
+    /**
+     * Check the color of the streak
+     * @param animate whether it is animated or not
+     */
+    private void checkStreakColor(boolean animate) {
         //if the streak has changed from 0 to >0 or >0 to 0
-        if (((oldStreak > 0) == (finalStreak > 0)) == false) {
+
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            final int finalStreak = DBMethods.updateAndGetStreak(this, taskDatabase);
+            List<Task> todayTasks = taskDatabase.taskDao().getDayTasks(Converters.todayString());
+            final boolean allTasksCompletedAtLeastOne = DBMethods.areAllTasksCompletedAtLeastOne(this, todayTasks);
+            //--------------------------------
+            handler.post(() -> {
+                int color = getColorFromStreak(finalStreak, allTasksCompletedAtLeastOne);
+                if (allTasksCompletedAtLeastOne == false) {
+                    color = defaultColor;
+                }
+                if (animate == true) {
+                    animateStreakToColor(color);
+                } else {
+                    TextView streakCounter = findViewById(R.id.streakCounter);
+                    ImageButton streakButton = findViewById(R.id.streakButton);
+                    streakCounter.setTextColor(color);
+                    streakButton.setColorFilter(color);
+                }
+            });
+        });
+    }
+
+    /**
+     * Get the color from the streak
+     * @param finalStreak the final streak
+     * @param allTasksCompletedAtLeastOne whether all of today's tasks were completed
+     * @return the color integer
+     */
+    private int getColorFromStreak(int finalStreak, boolean allTasksCompletedAtLeastOne) {
+        int color;
+
+        if (finalStreak < 100) {
             //work out the saturation
-            float sat = 0; //if no streak, no saturation
+            float h = 0;
             //otherwise, start from 50%
             if (finalStreak > 0) {
-                sat = (float) (0.5 + (0.5 * (float) finalStreak / 100f));
+                h = (float) (41 - (21 * (finalStreak/100f)));
             }
             //bounding
-            if (sat > 1) { sat = 1; }
+            if (h > 365) {
+                h = 365;
+            } else if (h < 0) {
+                h = 0;
+            }
             //set the color
-            int color = ColorUtils.HSLToColor(new float[]{ 0.25f, sat, 0.45f });
+            color = ColorUtils.HSLToColor(new float[]{ h, 1f, 0.5f });
             //set both the streakImage and the streakCounter colors
-            animateStreakToColor(color);
+        } else {
+            if (finalStreak < 365 ) {
+                color = ColorUtils.HSLToColor(new float[]{199f, 1f, 0.5f});
+            } else {
+                color = ColorUtils.HSLToColor(new float[]{313f, 1f, 0.5f});
+            }
         }
+
+        return color;
     }
 
     /**
@@ -473,6 +529,7 @@ public class MainActivity extends AppCompatActivity {
                 //rvTasks.scheduleLayoutAnimation();
                 checkRvTasksVisibility();
                 updateStreak();
+                checkStreakColor(true);
             });
         });
     }

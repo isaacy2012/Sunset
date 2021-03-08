@@ -10,8 +10,7 @@ public class TaskDatabaseFactory {
     public static TaskDatabase getTaskDatabase( Context context ) {
         return Room.databaseBuilder(context.getApplicationContext(),
                 TaskDatabase.class, "tasks")
-                //.fallbackToDestructiveMigration()
-                .addMigrations(TaskDatabase.MIGRATION_2_3)
+                .fallbackToDestructiveMigration()
                 .build();
     }
 }

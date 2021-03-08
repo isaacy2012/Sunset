@@ -16,6 +16,9 @@ public class Converters {
      */
     @TypeConverter
     public static LocalDate fromTimestamp( String value ) {
+        if (value == null) {
+            return null;
+        }
         return LocalDate.parse(value);
     }
 

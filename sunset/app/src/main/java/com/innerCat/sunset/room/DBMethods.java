@@ -35,7 +35,7 @@ public class DBMethods {
         }
 
         //if all tasks have been completed today
-        List<Task> todayTasks = taskDatabase.taskDao().getDayTasks(Converters.dateToTimestamp(LocalDate.now()));
+        List<Task> todayTasks = taskDatabase.taskDao().getDayTasks(Converters.todayString());
         if (DBMethods.areAllTasksCompletedAtLeastOne(context, todayTasks) == true) {
             maxStreak = maxStreak+1;
             streak = streak+1;
@@ -76,7 +76,7 @@ public class DBMethods {
             LocalDate lastStreakTaskDate = Converters.fromTimestamp(lastStreakTaskDateString);
             maxStreak = (int) DAYS.between(lastStreakTaskDate, LocalDate.now()) - 1;
         } else { //otherwise create one
-            Task lastStreakTask = taskDatabase.taskDao().getLastStreakTask(Converters.dateToTimestamp(LocalDate.now()));
+            Task lastStreakTask = taskDatabase.taskDao().getLastStreakTask();
             if (lastStreakTask != null) { //if there was a previous failed task
                 //the streak is the difference between the day after that day and today
                 maxStreak = (int) DAYS.between(lastStreakTask.getDate(), LocalDate.now()) - 1;

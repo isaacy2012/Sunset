@@ -8,6 +8,7 @@ import androidx.room.Update;
 
 import com.innerCat.sunset.Task;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -49,6 +50,14 @@ public interface TaskDao {
     @Query("DELETE FROM tasks WHERE name = :name")
     public int removeByName( String name );
 
+    /**
+     * Get a single Date from the id
+     *
+     * @param id the id (primary key) of the task
+     * @return the task
+     */
+    @Query("SELECT date FROM tasks WHERE id = :id")
+    public LocalDate getDate( int id );
 
     /**
      * Get a single Task from the id
@@ -80,24 +89,32 @@ public interface TaskDao {
      *
      * @return all the uncompleted Tasks in the database as a List
      */
-    @Query("SELECT * FROM tasks WHERE (complete = 0 AND julianday(date) <= julianday(:today)) ORDER BY id DESC")
-    public List<Task> getAllUncompletedTasksBeforeAndToday( String today );
+    @Query("SELECT * FROM tasks WHERE (completeDate IS NULL AND julianday(date) <= julianday('now')) ORDER BY id DESC")
+    public List<Task> getAllUncompletedTasksBeforeAndToday();
 
     /**
      * Returns all uncompleted Tasks as a List
      *
      * @return all the uncompleted Tasks in the database as a List
      */
-    @Query("SELECT COUNT(*) FROM tasks WHERE (complete = 0 AND julianday(date) <= julianday(:today))")
-    public int getNumberOfAllUncompletedTasksBeforeAndToday( String today );
+    @Query("SELECT COUNT(*) FROM tasks WHERE (completeDate IS NULL AND julianday(date) <= julianday('now'))")
+    public int getNumberOfAllUncompletedTasksBeforeAndToday();
 
     /**
      * Returns all completed Tasks as a List
      *
      * @return all the completed Tasks in the database as a List
      */
-    @Query("SELECT * FROM tasks WHERE (complete = 1 AND julianday(date) <= julianday(:today)) ORDER BY id DESC")
-    public List<Task> getAllCompletedTasksBeforeAndToday( String today );
+    @Query("SELECT * FROM tasks WHERE (completeDate IS NOT NULL AND julianday(date) <= julianday('now')) ORDER BY id DESC")
+    public List<Task> getAllCompletedTasksBeforeAndToday();
+
+    /**
+     * Returns all completed Tasks as a List
+     *
+     * @return all the completed Tasks in the database as a List
+     */
+    @Query("SELECT * FROM tasks WHERE (completeDate IS NOT NULL) ORDER BY id DESC")
+    public List<Task> getAllCompletedTasks();
 
     /**
      * Returns all completed Tasks as a List
@@ -121,8 +138,8 @@ public interface TaskDao {
      *
      * @return
      */
-    @Query("SELECT * FROM tasks WHERE (complete = 0 AND julianday(date) < julianday(:today)) OR (late = 1 AND julianday(date) < julianday(:today)) ORDER BY ROWID DESC LIMIT 1")
-    public Task getLastStreakTask( String today );
+    @Query("SELECT * FROM tasks WHERE (completeDate IS NULL AND julianday(date) < julianday('now')) OR (julianday(completeDate) > julianday(date) AND julianday(date) < julianday('now')) ORDER BY ROWID DESC LIMIT 1")
+    public Task getLastStreakTask();
 
     /**
      * Returns the first ever Task
