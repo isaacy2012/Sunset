@@ -25,7 +25,9 @@ import com.innerCat.sunset.factories.TextWatcherFactory;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -37,6 +39,7 @@ public class TasksAdapter extends
         RecyclerView.Adapter<TasksAdapter.ViewHolder> {
 
     private List<Task> tasks;
+    private Set<TasksAdapter.ViewHolder> mBoundViewHolders = new HashSet<>();
 
     // Provide a direct reference to each of the views within a data item
     // Used to cache the views within the item layout for fast access
@@ -63,7 +66,7 @@ public class TasksAdapter extends
                 task.toggleComplete();
                 int currentPosition = tasks.indexOf(task);
                 if (task.getComplete() == true) {
-                    if (task.isLate() == false) {
+                    if (task.wasLate() == false) {
                         ((MainActivity) context).todayComplete();
                     }
 
@@ -116,6 +119,7 @@ public class TasksAdapter extends
                     MainActivity.taskDatabase.taskDao().update(task);
                     handler.post(() -> {
                         ((MainActivity) context).updateStreak();
+                        ((MainActivity) context).checkStreakColor(true);
                     });
                 });
             });
@@ -200,6 +204,17 @@ public class TasksAdapter extends
     }
 
     /**
+     * Add a task, notifying the adapter
+     *
+     * @param position the position of the new Task in the List
+     * @param task     the Task to add
+     */
+    public void addTaskNotify( int position, Task task ) {
+        tasks.add(position, task);
+        notifyItemInserted(position);
+    }
+
+    /**
      * Remove all the checked items in the taskAdapter
      */
     public void removeAllChecked() {
@@ -210,6 +225,20 @@ public class TasksAdapter extends
                 notifyItemRemoved(i);
                 i = i - 1;
             }
+        }
+    }
+
+    /**
+     * Check if there any late tasks
+     */
+    public void checkLate() {
+        for (ViewHolder viewHolder : mBoundViewHolders) {
+            if (viewHolder.task.runningLate() == true) {
+                viewHolder.bulletPoint.setVisibility(View.VISIBLE);
+            } else {
+                viewHolder.bulletPoint.setVisibility(View.GONE);
+            }
+            notifyItemChanged(viewHolder.getAdapterPosition());
         }
     }
 
@@ -238,9 +267,10 @@ public class TasksAdapter extends
         textView.setText(holder.task.getName());
         CheckBox checkBox = holder.checkBox;
         checkBox.setChecked(holder.task.getComplete());
-        if ((int) DAYS.between(holder.task.getDate(), LocalDate.now()) == 0) {
+        if (holder.task.runningLate() == false) {
             holder.bulletPoint.setVisibility(View.GONE);
         }
+        mBoundViewHolders.add(holder);
 
     }
 

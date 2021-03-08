@@ -101,9 +101,12 @@ public class Task implements Comparable<Task> {
         this.completeDate = completeDate;
     }
 
+    public boolean runningLate() {
+        return DAYS.between(getDate(), LocalDate.now()) != 0;
+    }
 
 
-    public boolean isLate() {
+    public boolean wasLate() {
         if (this.completeDate == null) {
             return false;
         }

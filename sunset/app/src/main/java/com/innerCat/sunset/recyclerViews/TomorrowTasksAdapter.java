@@ -58,7 +58,7 @@ public class TomorrowTasksAdapter extends
                 task.toggleComplete();
                 int currentPosition = tasks.indexOf(task);
                 if (task.getComplete() == true) {
-                    if (task.isLate() == false) {
+                    if (task.wasLate() == false) {
                         ((MainActivity) context).todayComplete();
                     }
 
@@ -211,6 +211,20 @@ public class TomorrowTasksAdapter extends
                 i = i - 1;
             }
         }
+    }
+
+    /**
+     * @return the tasks of this TaskAdapter
+     */
+    public List<Task> getTasks() {
+        return this.tasks;
+    }
+
+    /**
+     * Removes all tasks
+     */
+    public void removeAllTasks() {
+        this.tasks.clear();
     }
 
     // Usually involves inflating a layout from XML and returning the holder

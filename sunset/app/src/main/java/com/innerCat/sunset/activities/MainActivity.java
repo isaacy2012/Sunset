@@ -49,12 +49,21 @@ import com.innerCat.sunset.room.TaskDatabase;
 import com.innerCat.sunset.widgets.HomeWidgetProvider;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.time.temporal.ChronoUnit.NANOS;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -84,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
 
         //streak
         sharedPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
+
+        //setUpdateUnseen("update_1_dot_1");
 
         //if the user hasn't seen the update dialog yet, then show it
         if (sharedPreferences.getBoolean("update_1_dot_1", false) == false) {
@@ -123,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             //Background work here
             //NB: This is the new thread in which the database stuff happens
             //today rvTask
-            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday();
+            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday(Converters.todayString());
 
             for (int i = 0; i < tasks.size(); i++) {
                 if (DAYS.between(tasks.get(i).getDate(), LocalDate.now()) > 0) {
@@ -156,8 +167,41 @@ public class MainActivity extends AppCompatActivity {
                 checkRvTasksTomorrowVisibility();
             });
         });
+
+        //set timer to refresh at 12:00
+        Handler timerHandler = new Handler();
+        Runnable runTask = () -> {
+            // Execute tasks on main thread
+            newDay();
+            updateStreak();
+            checkStreakColor(true);
+        };
+        timerHandler.postDelayed(runTask, getDelayToStartOfTomorrow());
     }
 
+    public void newDay() {
+        for (Task task : tomorrowAdapter.getTasks()) {
+            adapter.addTaskNotify(adapter.getItemCount(), task);
+        }
+        adapter.checkLate();
+        tomorrowAdapter.removeAllTasks();
+        checkRvTasksVisibility();
+        checkRvTasksTomorrowVisibility();
+    }
+
+    /**
+     * @return the delay until 00:00 tomorrow
+     */
+    public long getDelayToStartOfTomorrow() {
+        Calendar calendar = Calendar.getInstance();
+        long currentTimestamp = calendar.getTimeInMillis();
+        calendar.add(Calendar.DATE, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 1);
+        long diffTimestamp = calendar.getTimeInMillis() - currentTimestamp;
+        return (diffTimestamp < 0 ? 0 : diffTimestamp);
+    }
     /**
      * set the visibility of tomorrow recyclerView and title
      * @param visibility the visibility
@@ -183,6 +227,16 @@ public class MainActivity extends AppCompatActivity {
     private void setUpdateSeen(String updateString) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean(updateString, true);
+        editor.apply();
+    }
+
+    /**
+     * Set a particular update as unseen
+     * @param updateString the update string
+     */
+    private void setUpdateUnseen(String updateString) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(updateString, false);
         editor.apply();
     }
 
@@ -311,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
             //Background work here
-            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday();
+            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday(Converters.todayString());
 
             final int numTasks = tasks.size();
 
@@ -388,21 +442,14 @@ public class MainActivity extends AppCompatActivity {
      */
     private void displayStreak(int finalStreak) {
         TextView streakCounter = findViewById(R.id.streakCounter);
-        String oldStreakText = streakCounter.getText().toString();
-        int oldStreak = -1;
-        try {
-            oldStreak = Integer.parseInt(oldStreakText);
-        } catch (NumberFormatException ignored) {}
-
         streakCounter.setText(String.valueOf(finalStreak));
-
     }
 
     /**
      * Check the color of the streak
      * @param animate whether it is animated or not
      */
-    private void checkStreakColor(boolean animate) {
+    public void checkStreakColor( boolean animate ) {
         //if the streak has changed from 0 to >0 or >0 to 0
 
         //ROOM Threads
@@ -415,9 +462,6 @@ public class MainActivity extends AppCompatActivity {
             //--------------------------------
             handler.post(() -> {
                 int color = getColorFromStreak(finalStreak, allTasksCompletedAtLeastOne);
-                if (allTasksCompletedAtLeastOne == false) {
-                    color = defaultColor;
-                }
                 if (animate == true) {
                     animateStreakToColor(color);
                 } else {
@@ -439,7 +483,9 @@ public class MainActivity extends AppCompatActivity {
     private int getColorFromStreak(int finalStreak, boolean allTasksCompletedAtLeastOne) {
         int color;
 
-        if (finalStreak < 100) {
+        if (allTasksCompletedAtLeastOne == false) {
+            return defaultColor;
+        } else if (finalStreak < 100) {
             //work out the saturation
             float h = 0;
             //otherwise, start from 50%

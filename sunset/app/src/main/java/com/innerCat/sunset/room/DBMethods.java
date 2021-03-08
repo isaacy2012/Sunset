@@ -76,7 +76,7 @@ public class DBMethods {
             LocalDate lastStreakTaskDate = Converters.fromTimestamp(lastStreakTaskDateString);
             maxStreak = (int) DAYS.between(lastStreakTaskDate, LocalDate.now()) - 1;
         } else { //otherwise create one
-            Task lastStreakTask = taskDatabase.taskDao().getLastStreakTask();
+            Task lastStreakTask = taskDatabase.taskDao().getLastStreakTask(Converters.todayString());
             if (lastStreakTask != null) { //if there was a previous failed task
                 //the streak is the difference between the day after that day and today
                 maxStreak = (int) DAYS.between(lastStreakTask.getDate(), LocalDate.now()) - 1;

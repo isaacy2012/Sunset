@@ -89,24 +89,24 @@ public interface TaskDao {
      *
      * @return all the uncompleted Tasks in the database as a List
      */
-    @Query("SELECT * FROM tasks WHERE (completeDate IS NULL AND julianday(date) <= julianday('now')) ORDER BY id DESC")
-    public List<Task> getAllUncompletedTasksBeforeAndToday();
+    @Query("SELECT * FROM tasks WHERE (completeDate IS NULL AND julianday(date) <= julianday(:today)) ORDER BY id DESC")
+    public List<Task> getAllUncompletedTasksBeforeAndToday( String today );
 
     /**
      * Returns all uncompleted Tasks as a List
      *
      * @return all the uncompleted Tasks in the database as a List
      */
-    @Query("SELECT COUNT(*) FROM tasks WHERE (completeDate IS NULL AND julianday(date) <= julianday('now'))")
-    public int getNumberOfAllUncompletedTasksBeforeAndToday();
+    @Query("SELECT COUNT(*) FROM tasks WHERE (completeDate IS NULL AND julianday(date) <= julianday(:today))")
+    public int getNumberOfAllUncompletedTasksBeforeAndToday( String today );
 
     /**
      * Returns all completed Tasks as a List
      *
      * @return all the completed Tasks in the database as a List
      */
-    @Query("SELECT * FROM tasks WHERE (completeDate IS NOT NULL AND julianday(date) <= julianday('now')) ORDER BY id DESC")
-    public List<Task> getAllCompletedTasksBeforeAndToday();
+    @Query("SELECT * FROM tasks WHERE (completeDate IS NOT NULL AND julianday(date) <= julianday(:today)) ORDER BY id DESC")
+    public List<Task> getAllCompletedTasksBeforeAndToday( String today );
 
     /**
      * Returns all completed Tasks as a List
@@ -138,8 +138,8 @@ public interface TaskDao {
      *
      * @return
      */
-    @Query("SELECT * FROM tasks WHERE (completeDate IS NULL AND julianday(date) < julianday('now')) OR (julianday(completeDate) > julianday(date) AND julianday(date) < julianday('now')) ORDER BY ROWID DESC LIMIT 1")
-    public Task getLastStreakTask();
+    @Query("SELECT * FROM tasks WHERE (completeDate IS NULL AND julianday(date) < julianday(:today)) OR (julianday(completeDate) > julianday(date) AND julianday(date) < julianday('now')) ORDER BY ROWID DESC LIMIT 1")
+    public Task getLastStreakTask( String today );
 
     /**
      * Returns the first ever Task
