@@ -214,8 +214,10 @@ public class MainActivity extends AppCompatActivity {
         rvTasksTomorrow.setVisibility(visibility);
         if (visibility == View.GONE) {
             rvTasks.setPadding(0, 16, 0, 80);
+            rvTasksTomorrow.setPadding(0, 16, 0, 0);
         } else {
             rvTasks.setPadding(0, 16, 0, 0);
+            rvTasksTomorrow.setPadding(0, 16, 0, 80);
         }
     }
 
