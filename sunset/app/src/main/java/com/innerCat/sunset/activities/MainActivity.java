@@ -1,5 +1,7 @@
 package com.innerCat.sunset.activities;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
@@ -157,6 +159,8 @@ public class MainActivity extends AppCompatActivity {
                 rvTasksTomorrow.setLayoutManager(new LinearLayoutManager(this));
 
                 checkRvTasksTomorrowVisibility();
+
+
             });
         });
 
@@ -308,6 +312,12 @@ public class MainActivity extends AppCompatActivity {
      */
     public void onResume() {
         super.onResume();
+        if (adapter != null && rvTasks != null & tomorrowAdapter != null && rvTasksTomorrow != null) {
+            adapter.removeAllChecked();
+            checkRvTasksVisibility();
+            tomorrowAdapter.removeAllChecked();
+            checkRvTasksTomorrowVisibility();
+        }
         updateStreak();
         checkStreakColor(false);
     }
@@ -392,18 +402,18 @@ public class MainActivity extends AppCompatActivity {
                     } else { //otherwise, fade out and fade back in
                         AnimatorSet as = new AnimatorSet();
                         ValueAnimator animationToTransparent = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, Color.TRANSPARENT);
+                        animationToTransparent.addListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd( Animator animation) {
+                                messageTextView.setText(messageText);
+                            }
+                        });
                         animationToTransparent.addUpdateListener(animator -> {
                             messageTextView.setTextColor((Integer) animator.getAnimatedValue());
                         });
                         animationToTransparent.setDuration(textAnimationDuration);
                         as.play(animationToTransparent).before(reverseAnimation);
                         as.start();
-
-                        //delay the change of the messageText until the animation is half-complete and the text is fully faded out
-                        final Handler editHandler = new Handler(Looper.getMainLooper());
-                        editHandler.postDelayed(() -> {
-                            messageTextView.setText(messageText);
-                        }, textAnimationDuration);
                     }
                 }
             });
@@ -694,10 +704,6 @@ public class MainActivity extends AppCompatActivity {
      */
     public void onArchiveButton( View view) {
         Intent intent = new Intent(this, ArchiveActivity.class);
-        adapter.removeAllChecked();
-        checkRvTasksVisibility();
-        tomorrowAdapter.removeAllChecked();
-        checkRvTasksTomorrowVisibility();
         startActivityForResult(intent, LIST_TASK_REQUEST);
     }
 

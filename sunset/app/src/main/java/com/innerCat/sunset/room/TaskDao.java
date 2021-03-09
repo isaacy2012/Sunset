@@ -138,7 +138,7 @@ public interface TaskDao {
      *
      * @return
      */
-    @Query("SELECT * FROM tasks WHERE (completeDate IS NULL AND julianday(date) < julianday(:today)) OR (julianday(completeDate) > julianday(date) AND julianday(date) < julianday('now')) ORDER BY ROWID DESC LIMIT 1")
+    @Query("SELECT * FROM tasks WHERE (completeDate IS NULL AND julianday(date) < julianday(:today)) OR (julianday(completeDate) > julianday(date) AND julianday(date) < julianday('now')) ORDER BY date DESC LIMIT 1")
     public Task getLastStreakTask( String today );
 
     /**

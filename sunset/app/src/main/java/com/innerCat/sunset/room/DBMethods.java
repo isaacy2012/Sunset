@@ -3,6 +3,8 @@ package com.innerCat.sunset.room;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.annotation.WorkerThread;
+
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
 
@@ -11,6 +13,7 @@ import java.util.List;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
+@WorkerThread
 public class DBMethods {
 
     /**

@@ -9,11 +9,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.testng.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class TaskTests {
 
-    @Test
+    @AfterTest
     public void check_date_base_constructor() {
         Task task = new Task("TestTask");
         assertEquals(LocalDate.now(), task.getDate());
@@ -28,6 +28,13 @@ public class TaskTests {
     public void check_date_extended_constructor() {
         Task task = new Task("Extended", LocalDate.now().plusDays(3));
         assertEquals(LocalDate.now().plusDays(3), task.getDate());
+    }
+
+    @Test
+    public void check_base_and_extended_constructor_equal() {
+        Task a = new Task("A");
+        Task b = new Task("A", LocalDate.now());
+        assertEquals(a, b);
     }
 
     @Test
@@ -82,7 +89,7 @@ public class TaskTests {
         assertEquals(a, b);
     }
 
-    @AfterTest
+    @Test
     public void test_equals_false_name() {
         Task a = new Task("A");
         Task b = new Task("B");

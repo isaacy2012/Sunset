@@ -1,5 +1,6 @@
 package com.innerCat.sunset;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -126,6 +127,23 @@ public class Task implements Comparable<Task> {
 
     public int getRepeatTimes() {
         return this.repeatTimes;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append(this.getId());
+        sb.append(", ");
+        sb.append(this.getName());
+        sb.append(", ");
+        sb.append("DATE: ").append(this.getDate());
+        sb.append(", ");
+        sb.append("COMPLETEDATE: ").append(this.getCompleteDate() == null ? "null" : this.getCompleteDate());
+        sb.append(", ");
+        sb.append("}");
+        return sb.toString();
     }
 
     @Override

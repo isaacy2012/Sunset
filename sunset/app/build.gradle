@@ -34,7 +34,10 @@ android {
 dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testImplementation 'org.testng:testng:6.9.6'
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.4.0-alpha04'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
     androidTestImplementation 'junit:junit:4.12'
     def room_version = "2.2.6"
 
@@ -54,4 +57,10 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     androidTestImplementation 'androidx.test.espresso:espresso-intents:3.3.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+}
+
+task clearData(type: Exec) {
+    File adb = android.getAdbExe()
+    def clearDataCommand = ["$adb", 'shell', 'pm', 'clear', 'com.innerCat.sunset']
+    commandLine clearDataCommand
 }
