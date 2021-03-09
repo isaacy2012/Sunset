@@ -23,15 +23,12 @@ import com.innerCat.sunset.Task;
 import com.innerCat.sunset.activities.MainActivity;
 import com.innerCat.sunset.factories.TextWatcherFactory;
 
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static java.time.temporal.ChronoUnit.DAYS;
 
 // Create the basic adapter extending from RecyclerView.Adapter
 // Note that we specify the custom ViewHolder which gives us access to our views
@@ -65,7 +62,7 @@ public class TasksAdapter extends
             checkBox.setOnClickListener(v -> {
                 task.toggleComplete();
                 int currentPosition = tasks.indexOf(task);
-                if (task.getComplete() == true) {
+                if (task.isComplete() == true) {
                     if (task.wasLate() == false) {
                         ((MainActivity) context).todayComplete();
                     }
@@ -74,7 +71,7 @@ public class TasksAdapter extends
                     boolean found = false;
                     while (found == false) {
                         for (int i = currentPosition; i < tasks.size() - 1; i++) {
-                            if (tasks.get(i + 1).getComplete() == false) {
+                            if (tasks.get(i + 1).isComplete() == false) {
                                 Collections.swap(tasks, i, i + 1);
                             } else {
                                 found = true;
@@ -94,7 +91,7 @@ public class TasksAdapter extends
                     boolean found = false;
                     while (found == false) {
                         for (int i = currentPosition; i > 0; i--) {
-                            if (tasks.get(i - 1).getComplete() == true) {
+                            if (tasks.get(i - 1).isComplete() == true) {
                                 Collections.swap(tasks, i, i - 1);
                             } else {
                                 found = true;
@@ -220,7 +217,7 @@ public class TasksAdapter extends
     public void removeAllChecked() {
         for (int i = 0; i < tasks.size(); i++) {
             Task task = tasks.get(i);
-            if (task.getComplete() == true) {
+            if (task.isComplete() == true) {
                 tasks.remove(i);
                 notifyItemRemoved(i);
                 i = i - 1;
@@ -266,7 +263,7 @@ public class TasksAdapter extends
         TextView textView = holder.nameTextView;
         textView.setText(holder.task.getName());
         CheckBox checkBox = holder.checkBox;
-        checkBox.setChecked(holder.task.getComplete());
+        checkBox.setChecked(holder.task.isComplete());
         if (holder.task.runningLate() == false) {
             holder.bulletPoint.setVisibility(View.GONE);
         }

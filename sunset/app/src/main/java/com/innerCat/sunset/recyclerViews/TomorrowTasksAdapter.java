@@ -57,7 +57,7 @@ public class TomorrowTasksAdapter extends
             checkBox.setOnClickListener(v -> {
                 task.toggleComplete();
                 int currentPosition = tasks.indexOf(task);
-                if (task.getComplete() == true) {
+                if (task.isComplete() == true) {
                     if (task.wasLate() == false) {
                         ((MainActivity) context).todayComplete();
                     }
@@ -66,7 +66,7 @@ public class TomorrowTasksAdapter extends
                     boolean found = false;
                     while (found == false) {
                         for (int i = currentPosition; i < tasks.size() - 1; i++) {
-                            if (tasks.get(i + 1).getComplete() == false) {
+                            if (tasks.get(i + 1).isComplete() == false) {
                                 Collections.swap(tasks, i, i + 1);
                             } else {
                                 found = true;
@@ -86,7 +86,7 @@ public class TomorrowTasksAdapter extends
                     boolean found = false;
                     while (found == false) {
                         for (int i = currentPosition; i > 0; i--) {
-                            if (tasks.get(i - 1).getComplete() == true) {
+                            if (tasks.get(i - 1).isComplete() == true) {
                                 Collections.swap(tasks, i, i - 1);
                             } else {
                                 found = true;
@@ -205,7 +205,7 @@ public class TomorrowTasksAdapter extends
     public void removeAllChecked() {
         for (int i = 0; i < tasks.size(); i++) {
             Task task = tasks.get(i);
-            if (task.getComplete() == true) {
+            if (task.isComplete() == true) {
                 tasks.remove(i);
                 notifyItemRemoved(i);
                 i = i - 1;

@@ -49,21 +49,13 @@ import com.innerCat.sunset.room.TaskDatabase;
 import com.innerCat.sunset.widgets.HomeWidgetProvider;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.MILLIS;
-import static java.time.temporal.ChronoUnit.NANOS;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -179,6 +171,9 @@ public class MainActivity extends AppCompatActivity {
         timerHandler.postDelayed(runTask, getDelayToStartOfTomorrow());
     }
 
+    /**
+     * Called at 00:00, moves all Tasks in "Tomorrow" to "Today" and checks the visibility of the RecyclerViews
+     */
     public void newDay() {
         for (Task task : tomorrowAdapter.getTasks()) {
             adapter.addTaskNotify(adapter.getItemCount(), task);
@@ -202,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
         long diffTimestamp = calendar.getTimeInMillis() - currentTimestamp;
         return (diffTimestamp < 0 ? 0 : diffTimestamp);
     }
+
     /**
      * set the visibility of tomorrow recyclerView and title
      * @param visibility the visibility

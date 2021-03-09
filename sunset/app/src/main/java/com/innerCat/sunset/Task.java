@@ -88,7 +88,7 @@ public class Task implements Comparable<Task> {
         }
     }
 
-    public boolean getComplete() {
+    public boolean isComplete() {
         return (this.completeDate != null);
     }
 

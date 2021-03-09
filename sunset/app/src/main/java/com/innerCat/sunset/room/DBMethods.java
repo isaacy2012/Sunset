@@ -147,7 +147,7 @@ public class DBMethods {
     public static boolean areAllTasksCompletedAtLeastOne(Context context, List<Task> todayTasks) {
         if (todayTasks.size() > 0) { //if there are tasks today
             for (Task task : todayTasks) {
-                if (task.getComplete() == false) {
+                if (task.isComplete() == false) {
                     return false;
                 }
             }
