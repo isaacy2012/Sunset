@@ -73,17 +73,19 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="2dp"
+                        android:height="32dp"
+                        android:clickable="true"
                         android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:onClick="onStreakButton"
                         android:text="0"
                         android:textAlignment="center"
                         android:textSize="26sp"
                         app:flow_horizontalAlign="center"
                         app:flow_verticalAlign="center"
-                        app:layout_constraintEnd_toStartOf="@+id/archiveButton"
-                        android:height="32dp"
-                        android:gravity="center"
                         app:layout_constraintBottom_toBottomOf="@+id/streakButton"
-                        android:layout_marginBottom="2dp" />
+                        app:layout_constraintEnd_toStartOf="@+id/archiveButton" />
 
                 <ImageButton
                         android:layout_width="23dp"
