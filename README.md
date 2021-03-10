@@ -6,7 +6,7 @@
 - Reilly Oldham
 
 ### Sunset is a simple streak-based task manager for Android
-Sunset takes away all the complexity of other to-do apps, and instead focuses only on what you'll do today. Write down your to-do list of what you'll do today and stick to it. Do you everything you wrote down each day and build a streak. 
+Sunset takes away all the complexity of other to-do apps, and instead focuses only on what you'll do today. Write down your to-do list of what you'll do today and stick to it. Do everything you wrote down each day and build a streak. 
 
 <b>Only Today</b>
 
