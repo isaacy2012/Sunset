@@ -551,6 +551,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Update an existing task in the database that is scheduled for tomorrow
+     * @param task the task to change
+     * @param position its position in the RecyclerView
+     */
+    public void updateTomorrowTask(Task task, int position) {
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            taskDatabase.taskDao().update(task);
+            handler.post(() -> {
+                //UI Thread work here
+                // Notify the adapter that an item was changed at position
+                tomorrowAdapter.notifyItemChanged(position);
+            });
+        });
+    }
+
+    /**
      * Add a task to the database
      * @param name the name of the task
      */

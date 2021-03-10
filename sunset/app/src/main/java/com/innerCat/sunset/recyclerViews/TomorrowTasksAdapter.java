@@ -153,7 +153,7 @@ public class TomorrowTasksAdapter extends
                             String newName = input.getText().toString();
                             //edit the task
                             task.setName(newName);
-                            ((MainActivity) context).updateTask(task, position);
+                            ((MainActivity) context).updateTomorrowTask(task, position);
                         })
                         .setNegativeButton("Cancel", ( dialog, id ) -> {
                             // User cancelled the dialog

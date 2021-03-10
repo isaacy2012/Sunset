@@ -142,7 +142,7 @@
                             android:layout_weight="1"
                             android:minHeight="0dp"
                             android:textSize="14sp"
-                            android:text="Sunset version 1.0" />
+                            android:text="Sunset version 0.2" />
                 </LinearLayout>
 
             </LinearLayout>
