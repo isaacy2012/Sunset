@@ -8,18 +8,16 @@ import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
 import com.innerCat.sunset.activities.ArchiveActivity;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static java.time.temporal.ChronoUnit.DAYS;
 
 // Create the basic adapter extending from RecyclerView.Adapter
 // Note that we specify the custom ViewHolder which gives us access to our views
@@ -43,7 +41,7 @@ public class ArchiveTasksAdapter extends
 
         // We also create a constructor that accepts the entire item row
         // and does the view lookups to find each subview
-        public ViewHolder( View itemView, Context context) {
+        public ViewHolder( View itemView, Context context ) {
             // Stores the itemView in a public final member variable that can be used
             // to access the context from any ViewHolder instance.
             super(itemView);
@@ -53,19 +51,19 @@ public class ArchiveTasksAdapter extends
             nameTextView = (TextView) itemView.findViewById(R.id.nameView);
             replayButton = (ImageButton) itemView.findViewById(R.id.replayButton);
             deleteCheckBox = (CheckBox) itemView.findViewById(R.id.deleteCheckBox);
-            replayTextView = (TextView) itemView.findViewById(R.id.replayTextView );
+            replayTextView = (TextView) itemView.findViewById(R.id.replayTextView);
             deleteCheckBox.setOnClickListener(v -> {
                 if (deleteCheckBox.isChecked() == true) {
-                    ((ArchiveActivity)context).addDeleteTask(task);
+                    ((ArchiveActivity) context).addDeleteTask(task);
                 } else {
-                    ((ArchiveActivity)context).removeDeleteTask(task);
+                    ((ArchiveActivity) context).removeDeleteTask(task);
                 }
             });
             replayButton.setOnClickListener(v -> {
                 int currentPosition = archivedTasks.indexOf(task);
                 archivedTasks.remove(currentPosition);
                 notifyItemRemoved(currentPosition);
-                ((ArchiveActivity)context).repeatTask(task);
+                ((ArchiveActivity) context).repeatTask(task);
             });
         }
 
@@ -73,11 +71,11 @@ public class ArchiveTasksAdapter extends
          * Update the state of the checkboxes in the recyclerview wrt the modes in ArchiveActivity
          */
         public void updateState() {
-            if (((ArchiveActivity)context).getDeleteMode() == true) {
+            if (((ArchiveActivity) context).getDeleteMode() == true) {
                 deleteCheckBox.setVisibility(View.VISIBLE);
-                if (((ArchiveActivity)context).getSelectAllMode() == true) {
+                if (((ArchiveActivity) context).getSelectAllMode() == true) {
                     deleteCheckBox.setChecked(true);
-                    ((ArchiveActivity)context).addDeleteTask(task);
+                    ((ArchiveActivity) context).addDeleteTask(task);
                 }
             } else {
                 deleteCheckBox.setVisibility(View.GONE);
@@ -88,7 +86,7 @@ public class ArchiveTasksAdapter extends
     /**
      * Enables deletion of all the tasks
      */
-    public void checkDelete(boolean deleteMode) {
+    public void checkDelete( boolean deleteMode ) {
         for (ViewHolder viewHolder : mBoundViewHolders) {
             if (deleteMode == true) {
                 viewHolder.deleteCheckBox.setVisibility(View.VISIBLE);
@@ -101,39 +99,42 @@ public class ArchiveTasksAdapter extends
 
     /**
      * Select all the items in the RecyclerView
+     *
      * @param context the context (ArchiveActivity instance)
      */
-    public void selectAll(Context context) {
+    public void selectAll( Context context ) {
         for (ViewHolder viewHolder : mBoundViewHolders) {
             viewHolder.deleteCheckBox.setChecked(true);
         }
         for (Task task : archivedTasks) {
-            ((ArchiveActivity)context).addDeleteTask(task);
+            ((ArchiveActivity) context).addDeleteTask(task);
         }
     }
 
 
-
     /**
      * Pass in the tasks array into the Adapter
-     * @param tasks
+     *
+     * @param tasks the list of Tasks
      */
-    public ArchiveTasksAdapter( List<Task> tasks) {
+    public ArchiveTasksAdapter( List<Task> tasks ) {
         this.archivedTasks = tasks;
     }
 
     /**
      * Add a task
+     *
      * @param position the position of the new Task in the List
-     * @param task the Task to add
+     * @param task     the Task to add
      */
-    public void addTask(int position, Task task) {
+    public void addTask( int position, Task task ) {
         archivedTasks.add(position, task);
     }
 
     // Usually involves inflating a layout from XML and returning the holder
+    @NonNull
     @Override
-    public ArchiveTasksAdapter.ViewHolder onCreateViewHolder( ViewGroup parent, int viewType) {
+    public ArchiveTasksAdapter.ViewHolder onCreateViewHolder( ViewGroup parent, int viewType ) {
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
 
@@ -147,7 +148,7 @@ public class ArchiveTasksAdapter extends
 
     // Involves populating data into the item through holder
     @Override
-    public void onBindViewHolder( ArchiveTasksAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder( ArchiveTasksAdapter.ViewHolder holder, int position ) {
         // Get the data model based on position
         holder.task = archivedTasks.get(position);
 
@@ -155,14 +156,14 @@ public class ArchiveTasksAdapter extends
         TextView nameTextView = holder.nameTextView;
         TextView replayTextView = holder.replayTextView;
         int repeatTimes = holder.task.getRepeatTimes();
-        if ((int)DAYS.between(holder.task.getDate(), LocalDate.now()) == 0 && holder.task.isLate() == false) {
+        if (holder.task.completedToday() == true) {
             //completed today and not a late task
             String str = "Completed today";
             replayTextView.setText(str);
             replayTextView.setVisibility(View.VISIBLE);
         } else if (repeatTimes != 0) {
             //completed today and not a late task
-            String str = "Replayed " + (repeatTimes > 1 ? repeatTimes +  " times" : "once") + " before";
+            String str = "Replayed " + (repeatTimes > 1 ? repeatTimes + " times" : "once") + " before";
             replayTextView.setText(str);
             replayTextView.setVisibility(View.VISIBLE);
         } else {

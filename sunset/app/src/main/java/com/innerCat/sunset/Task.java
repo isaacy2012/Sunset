@@ -1,8 +1,10 @@
 package com.innerCat.sunset;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import com.innerCat.sunset.room.Converters;
@@ -21,18 +23,32 @@ public class Task implements Comparable<Task> {
     private int id = 0;
     private String name;
     private LocalDate date;
-    private boolean complete = false;
-    private boolean late = false;
+
+    @Nullable
+    private LocalDate completeDate;
 
     @ColumnInfo(defaultValue = "0")
     private int repeatTimes = 0;
 
 
-    //constructor
+    /**
+     * Constructor
+     * @param name the name of the task
+     */
     public Task( String name ) {
         this.name = name;
         this.date = LocalDate.now();
+    }
 
+    /**
+     * Constructor with specified date
+     * @param name the name of the task
+     * @param date the specified date
+     */
+    @Ignore
+    public Task( String name, LocalDate date ) {
+        this.name = name;
+        this.date = date;
     }
 
 
@@ -54,7 +70,7 @@ public class Task implements Comparable<Task> {
     }
 
     public LocalDate getDate() {
-        return date;
+        return this.date;
     }
 
     public void setDate( LocalDate date ) {
@@ -65,29 +81,44 @@ public class Task implements Comparable<Task> {
         return Converters.dateToTimestamp(this.date);
     }
 
-    public void setComplete( boolean complete ) {
-        this.complete = complete;
-    }
-
     public void toggleComplete() {
-        this.complete = (this.complete == false);
-        if (this.complete == true) {
-            if ((int)DAYS.between(this.date, LocalDate.now()) != 0) {
-                late = true;
-            }
+        if (this.completeDate == null) {
+            this.completeDate = LocalDate.now();
+        } else {
+            this.completeDate = null;
         }
     }
 
-    public boolean getComplete() {
-        return this.complete;
+    public boolean isComplete() {
+        return (this.completeDate != null);
     }
 
-    public boolean isLate() {
-        return this.late;
+    @Nullable
+    public LocalDate getCompleteDate() {
+        return this.completeDate;
     }
 
-    public void setLate( boolean late ) {
-        this.late = late;
+    public void setCompleteDate( @Nullable LocalDate completeDate) {
+        this.completeDate = completeDate;
+    }
+
+    public boolean runningLate() {
+        return DAYS.between(getDate(), LocalDate.now()) != 0;
+    }
+
+
+    public boolean wasLate() {
+        if (this.completeDate == null) {
+            return false;
+        }
+        return (DAYS.between(this.date, this.completeDate) != 0);
+    }
+
+    public boolean completedToday() {
+        if (this.completeDate == null) {
+            return false;
+        }
+        return (DAYS.between(LocalDate.now(), this.completeDate) == 0);
     }
 
     public void setRepeatTimes(int repeatTimes) {
@@ -96,6 +127,23 @@ public class Task implements Comparable<Task> {
 
     public int getRepeatTimes() {
         return this.repeatTimes;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append(this.getId());
+        sb.append(", ");
+        sb.append(this.getName());
+        sb.append(", ");
+        sb.append("DATE: ").append(this.getDate());
+        sb.append(", ");
+        sb.append("COMPLETEDATE: ").append(this.getCompleteDate() == null ? "null" : this.getCompleteDate());
+        sb.append(", ");
+        sb.append("}");
+        return sb.toString();
     }
 
     @Override

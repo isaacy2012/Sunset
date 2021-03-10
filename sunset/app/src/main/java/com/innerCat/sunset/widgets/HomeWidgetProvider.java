@@ -12,32 +12,45 @@ import android.view.View;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
-import androidx.room.Room;
 
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.activities.MainActivity;
+import com.innerCat.sunset.factories.TaskDatabaseFactory;
+import com.innerCat.sunset.room.Converters;
 import com.innerCat.sunset.room.TaskDatabase;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 
 /**
  * Implementation of App Widget functionality.
  */
 public class HomeWidgetProvider extends AppWidgetProvider {
 
-    static TaskDatabase taskDatabase;
+    private static TaskDatabase taskDatabase;
 
-    public static void broadcastUpdate(Context context) {
-            Intent intent = new Intent(context, HomeWidgetProvider.class);
-            //update intent
-            intent.setAction("android.appwidget.action.APPWIDGET_UPDATE");
-            //ids of widgets
-            int[] ids = AppWidgetManager.getInstance(context.getApplicationContext()).getAppWidgetIds(new ComponentName(context.getApplicationContext(), HomeWidgetProvider.class));;
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
-            context.sendBroadcast(intent);
+    /**
+     * Broadcast an update to all the widgets
+     * @param context the context from which the update should be broadcast
+     */
+    public static void broadcastUpdate( Context context ) {
+        Intent intent = new Intent(context, HomeWidgetProvider.class);
+        //update intent
+        intent.setAction("android.appwidget.action.APPWIDGET_UPDATE");
+        //ids of widgets
+        int[] ids = AppWidgetManager.getInstance(context.getApplicationContext()).getAppWidgetIds(new ComponentName(context.getApplicationContext(), HomeWidgetProvider.class));
+        ;
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+        context.sendBroadcast(intent);
     }
 
+    /**
+     * Internal update widgets
+     * @param context the context from which to update
+     * @param appWidgetManager the appWidgetManager
+     * @param appWidgetId the appWidgetId
+     */
     static void updateAppWidget( Context context, AppWidgetManager appWidgetManager,
                                  int appWidgetId ) {
         // Create an Intent to launch MainActivity
@@ -58,7 +71,7 @@ public class HomeWidgetProvider extends AppWidgetProvider {
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
             //Background work here
-            final int num = taskDatabase.taskDao().getNumberOfAllUncompletedTasks();
+            final int num = taskDatabase.taskDao().getNumberOfAllUncompletedTasksBeforeAndToday(Converters.todayString());
             handler.post(() -> {
                 // Instruct the widget manager to update the widget
                 views.setTextViewText(R.id.appwidget_num, String.valueOf(num));
@@ -96,13 +109,9 @@ public class HomeWidgetProvider extends AppWidgetProvider {
         initDatabase(context);
     }
 
-    public static void initDatabase(Context context) {
+    public static void initDatabase( Context context ) {
         //initialise the database
-        taskDatabase = Room.databaseBuilder(context,
-                TaskDatabase.class, "tasks")
-                //.fallbackToDestructiveMigration()
-                .addMigrations(TaskDatabase.MIGRATION_2_3)
-                .build();
+        taskDatabase = TaskDatabaseFactory.getTaskDatabase(context);
     }
 
     @Override
@@ -111,7 +120,12 @@ public class HomeWidgetProvider extends AppWidgetProvider {
         taskDatabase = null;
     }
 
-    private static void setRemoteAdapter(Context context, @NonNull final RemoteViews views) {
+    /**
+     * Set the remote adapter
+     * @param context the context from which to create the intent
+     * @param views the remoteViews to set the remoteAdapter of
+     */
+    private static void setRemoteAdapter( Context context, @NonNull final RemoteViews views ) {
         views.setRemoteAdapter(R.id.widgetListView,
                 new Intent(context, WidgetService.class));
     }

@@ -1,5 +1,7 @@
 package com.innerCat.sunset.activities;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
@@ -12,42 +14,45 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
-import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.ColumnInfo;
-import androidx.room.Room;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
+import com.innerCat.sunset.factories.AnimationListenerFactory;
+import com.innerCat.sunset.factories.TaskDatabaseFactory;
+import com.innerCat.sunset.factories.TextWatcherFactory;
 import com.innerCat.sunset.recyclerViews.TasksAdapter;
+import com.innerCat.sunset.recyclerViews.TomorrowTasksAdapter;
 import com.innerCat.sunset.room.Converters;
+import com.innerCat.sunset.room.DBMethods;
 import com.innerCat.sunset.room.TaskDatabase;
 import com.innerCat.sunset.widgets.HomeWidgetProvider;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,7 +67,9 @@ public class MainActivity extends AppCompatActivity {
     //private fields for the Dao and the Database
     public static TaskDatabase taskDatabase;
     RecyclerView rvTasks;
+    RecyclerView rvTasksTomorrow;
     TasksAdapter adapter;
+    TomorrowTasksAdapter tomorrowAdapter;
     SharedPreferences sharedPreferences;
     int defaultColor;
 
@@ -70,16 +77,216 @@ public class MainActivity extends AppCompatActivity {
 
     private final int LIST_TASK_REQUEST = 1;
 
-    public void setUpdateSeen(String updateString) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        //constants
+        ANIMATION_DURATION = getResources().getInteger(R.integer.animation_duration);
+
+        //streak
+        sharedPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
+
+        //setUpdateUnseen("update_1_dot_1");
+
+        //if the user hasn't seen the update dialog yet, then show it
+        if (sharedPreferences.getBoolean("update_1_dot_1", false) == false) {
+            showUpdateDialog();
+        }
+
+        //get the default text color
+        TextView messageTextView = findViewById(R.id.messageTextView);
+        defaultColor = messageTextView.getCurrentTextColor();
+
+        //initialise the database
+        taskDatabase = TaskDatabaseFactory.getTaskDatabase(this);
+
+        //get the recyclerview in activity layout
+        rvTasks = findViewById(R.id.rvTasks);
+
+        //get the recyclerview of tomorrow
+        rvTasksTomorrow = findViewById(R.id.rvTasksTomorrow);
+
+        //get the swipeRefreshLayout
+        final SwipeRefreshLayout swipeRefreshLayout= findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            adapter.removeAllChecked();
+            checkRvTasksVisibility();
+            tomorrowAdapter.removeAllChecked();
+            checkRvTasksTomorrowVisibility();
+
+            adapter.notifyDataSetChanged();
+            tomorrowAdapter.notifyDataSetChanged();
+            swipeRefreshLayout.setRefreshing(false);
+        });
+
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            //NB: This is the new thread in which the database stuff happens
+            //today rvTask
+            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday(Converters.todayString());
+
+            for (int i = 0; i < tasks.size(); i++) {
+                if (DAYS.between(tasks.get(i).getDate(), LocalDate.now()) > 0) {
+                    Task task = tasks.get(i);
+                    //noinspection SuspiciousListRemoveInLoop since we are adding it back at index 0
+                    tasks.remove(i);
+                    tasks.add(0, task);
+                }
+            }
+
+            //tomorrow rvTask
+            List<Task> tomorrowTasks = taskDatabase.taskDao().getAllTasksOnDate(Converters.dateToTimestamp(LocalDate.now().plusDays(1)));
+
+            handler.post(() -> {
+                // Create adapter passing in the sample user data
+                adapter = new TasksAdapter(tasks);
+                // Attach the adapter to the recyclerview to populate items
+                rvTasks.setAdapter(adapter);
+                // Set layout manager to position the items
+                rvTasks.setLayoutManager(new LinearLayoutManager(this));
+                checkRvTasksVisibility();
+
+                //tomorrow adapter
+                tomorrowAdapter = new TomorrowTasksAdapter(tomorrowTasks);
+                // Create adapter passing in the sample user data
+                rvTasksTomorrow.setAdapter(tomorrowAdapter);
+                // Set layout manager to position the items
+                rvTasksTomorrow.setLayoutManager(new LinearLayoutManager(this));
+
+                checkRvTasksTomorrowVisibility();
+
+
+            });
+        });
+
+        //set timer to refresh at 12:00
+        Handler timerHandler = new Handler();
+        Runnable runTask = () -> {
+            // Execute tasks on main thread
+            newDay();
+            updateStreak();
+            checkStreakColor(true);
+        };
+        timerHandler.postDelayed(runTask, getDelayToStartOfTomorrow());
+    }
+
+    /**
+     * When the view is resumed
+     */
+    public void onResume() {
+        super.onResume();
+        if (adapter != null && rvTasks != null & tomorrowAdapter != null && rvTasksTomorrow != null) {
+            adapter.removeAllChecked();
+            checkRvTasksVisibility();
+            tomorrowAdapter.removeAllChecked();
+            checkRvTasksTomorrowVisibility();
+        }
+        updateStreak();
+        checkStreakColor(false);
+    }
+
+    /**
+     * Called at 00:00, moves all Tasks in "Tomorrow" to "Today" and checks the visibility of the RecyclerViews
+     */
+    public void newDay() {
+        for (Task task : tomorrowAdapter.getTasks()) {
+            adapter.addTaskNotify(adapter.getItemCount(), task);
+        }
+        adapter.checkLate();
+        tomorrowAdapter.removeAllTasks();
+        checkRvTasksVisibility();
+        checkRvTasksTomorrowVisibility();
+    }
+
+    /**
+     * @return the delay until 00:00 tomorrow
+     */
+    public long getDelayToStartOfTomorrow() {
+        Calendar calendar = Calendar.getInstance();
+        long currentTimestamp = calendar.getTimeInMillis();
+        calendar.add(Calendar.DATE, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 1);
+        long diffTimestamp = calendar.getTimeInMillis() - currentTimestamp;
+        return (diffTimestamp < 0 ? 0 : diffTimestamp);
+    }
+
+    /**
+     * set the visibility of tomorrow recyclerView and title
+     * @param visibility the visibility
+     */
+    private void setTomorrowVisibility(int visibility) {
+        View divider = findViewById(R.id.tomorrowDivider);
+        TextView tomorrowTextView = findViewById(R.id.tomorrowTextView);
+        divider.setVisibility(visibility);
+        tomorrowTextView.setVisibility(visibility);
+        rvTasksTomorrow.setVisibility(visibility);
+        if (visibility == View.GONE) {
+            rvTasks.setPadding(0, 16, 0, 80);
+        } else {
+            rvTasks.setPadding(0, 16, 0, 0);
+        }
+    }
+
+
+    /**
+     * Set a particular update as seen
+     * @param updateString the update string
+     */
+    private void setUpdateSeen(String updateString) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean(updateString, true);
         editor.apply();
     }
 
     /**
+     * Set a particular update as unseen
+     * @param updateString the update string
+     */
+    private void setUpdateUnseen(String updateString) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(updateString, false);
+        editor.apply();
+    }
+
+    /**
+     * check and set the visibility of rvTasks according to the tasks
+     */
+    private void checkRvTasksVisibility() {
+        if (adapter == null) {
+            return;
+        }
+        if (adapter.getItemCount() == 0) {
+            rvTasks.setVisibility(View.GONE);
+        } else {
+            rvTasks.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * check and set the visibility of rvTasksTomorrow according to the tasks for tomorrow
+     */
+    private void checkRvTasksTomorrowVisibility() {
+        if (tomorrowAdapter == null) {
+            return;
+        }
+        if (tomorrowAdapter.getItemCount() == 0) {
+            setTomorrowVisibility(View.GONE);
+        } else {
+            setTomorrowVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
      * Show the update dialog, which shows users what the new features in an update are
      */
-    public void showUpdateDialog() {
+    private void showUpdateDialog() {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
         LayoutInflater inflater = LayoutInflater.from(this);
         View updateText = inflater.inflate(R.layout.update_text, null);
@@ -120,132 +327,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        //constants
-        ANIMATION_DURATION = getResources().getInteger(R.integer.animation_duration);
-
-        //streak
-        sharedPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
-
-        //if the user hasn't seen the update dialog yet, then show it
-        if (sharedPreferences.getBoolean("update_1_dot_1", false) == false) {
-            showUpdateDialog();
-        }
-
-        //get the default text color
-        TextView messageTextView = findViewById(R.id.messageTextView);
-        defaultColor = messageTextView.getCurrentTextColor();
-
-        //initialise the database
-        taskDatabase = Room.databaseBuilder(getApplicationContext(),
-                TaskDatabase.class, "tasks")
-                //.fallbackToDestructiveMigration()
-                .addMigrations(TaskDatabase.MIGRATION_2_3)
-                .build();
-
-        //get the recyclerview in activity layout
-        rvTasks = findViewById(R.id.rvTasks);
-
-        //get the swipeRefreshLayout
-        final SwipeRefreshLayout swipeRefreshLayout= findViewById(R.id.swipeRefreshLayout);
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            adapter.removeAllChecked();
-            adapter.notifyDataSetChanged();
-            swipeRefreshLayout.setRefreshing(false);
-        });
-
-        //ROOM Threads
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-        executor.execute(() -> {
-            //Background work here
-            //NB: This is the new thread in which the database stuff happens
-            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasks();
-            for (int i = 0; i < tasks.size(); i++) {
-                if (DAYS.between(tasks.get(i).getDate(), LocalDate.now()) != 0) {
-                    Task task = tasks.get(i);
-                    //noinspection SuspiciousListRemoveInLoop since we are adding it back at index 0
-                    tasks.remove(i);
-                    tasks.add(0, task);
-                }
-            }
-            handler.post(() -> {
-                // Create adapter passing in the sample user data
-                adapter = new TasksAdapter(tasks);
-                // Attach the adapter to the recyclerview to populate items
-                rvTasks.setAdapter(adapter);
-                // Set layout manager to position the items
-                rvTasks.setLayoutManager(new LinearLayoutManager(this));
-                // That's all!
-            });
-        });
-    }
-
-    /**
-     * When the view is resumed
-     */
-    public void onResume() {
-        super.onResume();
-        updateStreak();
-    }
-
-
-    /**
-     * When the archive button is pressed
-     * @param view
-     */
-    public void onArchiveButton( View view) {
-        Intent intent = new Intent(this, ArchiveActivity.class);
-        adapter.removeAllChecked();
-        startActivityForResult(intent, LIST_TASK_REQUEST);
-    }
-
-
-    /**
-     * When there is a result from an activity
-     * @param requestCode the requestCode
-     * @param resultCode the resultCode
-     * @param data the data from the activity
-     */
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == LIST_TASK_REQUEST) {
-            if(resultCode == RESULT_OK) {
-                ArrayList<Integer> ids = data.getIntegerArrayListExtra("ids");
-                addIds(ids);
-            }
-        }
-    }
-
-    /**
-     * Add tasks to the adapter given ids of Tasks *already added* into the database
-     * @param ids the ids of the Tasks
-     */
-    public void addIds(ArrayList<Integer> ids) {
-        //ROOM Threads
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-        executor.execute(() -> {
-            //Background work here
-            ArrayList<Task> newTasks = new ArrayList<>();
-            for (Integer id : ids) {
-                Task addTask = taskDatabase.taskDao().getTask(id);
-                if (addTask != null) {
-                    newTasks.add(addTask);
-                }
-            }
-            handler.post(() -> {
-                for (Task addTask : newTasks) {
-                    adapter.addTask(0, addTask);
-                    adapter.notifyItemInserted(0);
-                }
-            });
-        });
-    }
 
 
     /**
@@ -262,19 +344,18 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Update the messageTextView
      */
-    public void updateMessage() {
+    private void updateMessage() {
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
             //Background work here
-            //NB: This is the new thread in which the database stuff happens
-            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasks();
+            List<Task> tasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday(Converters.todayString());
+
             final int numTasks = tasks.size();
+
             handler.post(() -> {
-                int textAnimationDuration = 400;
                 TextView messageTextView = findViewById(R.id.messageTextView);
-                int colorFrom = defaultColor;
                 String messageText;
                 if (numTasks == 0) {
                     if (sharedPreferences.getBoolean(getString(R.string.today_at_least_one_completed), false) == true) {
@@ -285,197 +366,168 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     messageText = "You have " + numTasks + " " + (numTasks > 1 ? "tasks" : "task") + " remaining today" ;
                 }
-                if (messageText.equals(messageTextView.getText()) == false) { //if the message is changing, then do the animation
-                    messageTextView.setTextColor(Color.TRANSPARENT);
-                    ValueAnimator reverseAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), Color.TRANSPARENT, colorFrom);
-                    reverseAnimation.addUpdateListener(animator -> {
-                        messageTextView.setTextColor((Integer) animator.getAnimatedValue());
-                    });
-                    reverseAnimation.setDuration(textAnimationDuration);
-                    if (messageTextView.getText().equals("")) { //if this is the first time doing the text, don't need to fade out
-                        messageTextView.setText(messageText);
-                        reverseAnimation.start();
-                    } else { //otherwise, fade out and fade back in
-                        AnimatorSet as = new AnimatorSet();
-                        ValueAnimator animationToTransparent = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, Color.TRANSPARENT);
-                        animationToTransparent.addUpdateListener(animator -> {
-                            messageTextView.setTextColor((Integer) animator.getAnimatedValue());
-                        });
-                        animationToTransparent.setDuration(textAnimationDuration);
-                        as.play(animationToTransparent).before(reverseAnimation);
-                        as.start();
-
-                        //delay the change of the messageText until the animation is half-complete and the text is fully faded out
-                        final Handler editHandler = new Handler(Looper.getMainLooper());
-                        editHandler.postDelayed(() -> {
-                            messageTextView.setText(messageText);
-                        }, textAnimationDuration);
-                    }
+                if (messageText.equals(messageTextView.getText().toString()) == false) { //if the message is changing, then do the animation
+                    setAnimateMessageView(messageText);
                 }
             });
         });
 
     }
 
+    /**
+     * Animates the message view to the message text
+     * @param messageText the text for the messageTextView to display
+     */
+    private void setAnimateMessageView( String messageText) {
+        int colorFrom = defaultColor;
+        int textAnimationDuration = getResources().getInteger(R.integer.text_animation_duration);
+        TextView messageTextView = findViewById(R.id.messageTextView);
+        messageTextView.setTextColor(Color.TRANSPARENT);
+
+        ValueAnimator reverseAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), Color.TRANSPARENT, colorFrom);
+        //set the text color with reverseAnimation
+        reverseAnimation.addUpdateListener(animator -> {
+            messageTextView.setTextColor((Integer) animator.getAnimatedValue());
+        });
+        reverseAnimation.setDuration(textAnimationDuration);
+
+        if (messageTextView.getText().equals("")) { //if this is the first time doing the text, don't need to fade out
+            messageTextView.setText(messageText);
+            reverseAnimation.start();
+        } else { //otherwise, fade out and fade back in
+            AnimatorSet as = new AnimatorSet();
+            ValueAnimator animationToTransparent = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, Color.TRANSPARENT);
+
+            //set the message text once the text is completely transparent
+            animationToTransparent.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd( Animator animation) {
+                    messageTextView.setText(messageText);
+                }
+            });
+            animationToTransparent.addUpdateListener(animator -> {
+                messageTextView.setTextColor((Integer) animator.getAnimatedValue());
+            });
+            animationToTransparent.setDuration(textAnimationDuration);
+            as.play(animationToTransparent).before(reverseAnimation);
+            as.start();
+        }
+    }
+
     /*
      * Update the streak
      */
+
     public void updateStreak() {
-        //ROOM Threads
         updateMessage();
         HomeWidgetProvider.broadcastUpdate(this);
-        final SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
-            int streak = sharedPreferences.getInt(getString(R.string.streak), 0);
-            String lastStreakTaskDateString = sharedPreferences.getString(getString(R.string.streak_task_date), "none");
-
-            //checking that lastStreakDateString is in the past
-            if (lastStreakTaskDateString.equals("none") == false) {
-                LocalDate lastStreakTaskDate = Converters.fromTimestamp(lastStreakTaskDateString);
-                if (DAYS.between(lastStreakTaskDate, LocalDate.now()) < 0) {
-                    editor.putString(getString(R.string.streak_task_date), Converters.dateToTimestamp(LocalDate.now().minusDays(1)));
-                    editor.apply();
-                }
-            }
-
-            //calculate the maximum streak
-            int maxStreak;
-            if (lastStreakTaskDateString.equals("none") == false) { //if there was a previous lastStreakTaskDateString then use that
-                LocalDate lastStreakTaskDate = Converters.fromTimestamp(lastStreakTaskDateString);
-                maxStreak = (int) DAYS.between(lastStreakTaskDate, LocalDate.now()) - 1;
-            } else { //otherwise create one
-                Task lastStreakTask = taskDatabase.taskDao().getLastStreakTask(Converters.dateToTimestamp(LocalDate.now()));
-                if (lastStreakTask != null) { //if there was a previous failed task
-                    //the streak is the difference between the day after that day and today
-                    maxStreak = (int) DAYS.between(lastStreakTask.getDate(), LocalDate.now()) - 1;
-                    if (maxStreak < 0) {maxStreak = 0;}
-                    editor.putString(getString(R.string.streak_task_date), Converters.dateToTimestamp(lastStreakTask.getDate()));
-                } else { //if there were no previous failed tasks
-                    Task firstEverTask = taskDatabase.taskDao().getFirstEverTask();
-                    //if there is a first task
-                    if (firstEverTask != null) { //day difference between the first ever (completed) task and today is the streak
-                        maxStreak = (int) DAYS.between(firstEverTask.getDate(), LocalDate.now()) - 1;
-                        if (maxStreak < 0) {maxStreak = 0;}
-                        editor.putString(getString(R.string.streak_task_date), Converters.dateToTimestamp(firstEverTask.getDate()));
-                    } else {  //if there are no tasks at all ever
-                        maxStreak = 0; //if there are no tasks at all ever, then the streak is 0
-                    }
-                }
-            }
-            if (maxStreak < 0) {maxStreak = 0;}
-
-            //if the streak hasn't been updated today
-            LocalDate lastUpdated = Converters.fromTimestamp(sharedPreferences.getString(getString(R.string.last_updated), Converters.dateToTimestamp(LocalDate.ofEpochDay(0))));
-            if (DAYS.between(lastUpdated, LocalDate.now()) != 0) {
-                //if yesterday indicated that the streak should be increased
-                List<Task> yesterdayTasks = taskDatabase.taskDao().getDayTasks(Converters.dateToTimestamp(LocalDate.now().minusDays(1)));
-                if (areAllTasksCompletedAtLeastOne(yesterdayTasks) == true) {
-                    streak = streak + 1;
-                    if (streak > maxStreak) {
-                        streak = maxStreak;
-                    }
-                    editor.putInt(getString(R.string.streak), streak);
-                } else { //if the streak should not have been increased
-                    //if any of the tasks yesterday were failed AND there were tasks yesterday
-                    if (areAllTasksCompletedAtLeastOne(yesterdayTasks) == false && yesterdayTasks.size() > 0) {
-                        //reset streak
-                        streak = 0;
-                        editor.putInt(getString(R.string.streak), streak);
-                        editor.putString(getString(R.string.streak_task_date), Converters.dateToTimestamp(LocalDate.now().minusDays(1)));
-                    }
-                    //otherwise the streak is the same
-                }
-                //reset yesterdays "today tasks completed"
-                if (sharedPreferences.getBoolean(getString(R.string.today_at_least_one_completed), false) == true) {
-                    editor.putBoolean(getString(R.string.today_at_least_one_completed), false);
-                }
-
-                //update the "last updated" date to today
-                editor.putString(getString(R.string.last_updated), Converters.dateToTimestamp(LocalDate.now()));
-                editor.apply();
-            }
-
-            //if all tasks have been completed today
-            List<Task> todayTasks = taskDatabase.taskDao().getDayTasks(Converters.dateToTimestamp(LocalDate.now()));
-            if (areAllTasksCompletedAtLeastOne(todayTasks) == true) {
-                maxStreak = maxStreak+1;
-                streak = streak+1;
-            }
-
-            //if the new streak is greater than the maximum theoretical streak, then set it to the max
-            if (streak > maxStreak) {
-                streak = maxStreak;
-            }
-            final int finalStreak = streak;
+            final int finalStreak = DBMethods.updateAndGetStreak(this, taskDatabase);
             //--------------------------------
             handler.post(() -> {
-                TextView streakCounter = findViewById(R.id.streakCounter);
-                String oldStreakText = streakCounter.getText().toString();
-                int oldStreak = -1;
-                try {
-                    oldStreak = Integer.parseInt(oldStreakText);
-                } catch (NumberFormatException ignored) {}
+                displayStreak(finalStreak);
+                setHighScoreText();
+            });
+        });
+    }
 
-                streakCounter.setText(String.valueOf(finalStreak));
+    /**
+     * Display the streak
+     * @param finalStreak the final streak from updateStreak()
+     */
+    private void displayStreak(int finalStreak) {
+        TextView streakCounter = findViewById(R.id.streakCounter);
+        streakCounter.setText(String.valueOf(finalStreak));
+    }
 
-                //if the streak has changed from 0 to >0 or >0 to 0
-                if (((oldStreak > 0) == (finalStreak > 0)) == false) {
-                    //work out the saturation
-                    float sat = 0; //if no streak, no saturation
-                    //otherwise, start from 50%
-                    if (finalStreak > 0) {
-                        sat = (float) (0.5 + (0.5 * (float) finalStreak / 100f));
-                    }
-                    //bounding
-                    if (sat > 1) { sat = 1; }
-                    //set the color
-                    int color = ColorUtils.HSLToColor(new float[]{ 0.25f, sat, 0.45f });
-                    //set both the streakImage and the streakCounter colors
+    /**
+     * Check the color of the streak
+     * @param animate whether it is animated or not
+     */
+    public void checkStreakColor( boolean animate ) {
+        //if the streak has changed from 0 to >0 or >0 to 0
+
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            final int finalStreak = DBMethods.updateAndGetStreak(this, taskDatabase);
+            List<Task> todayTasks = taskDatabase.taskDao().getDayTasks(Converters.todayString());
+            final boolean allTasksCompletedAtLeastOne = DBMethods.areAllTasksCompletedAtLeastOne(this, todayTasks);
+            //--------------------------------
+            handler.post(() -> {
+                int color = getColorFromStreak(finalStreak, allTasksCompletedAtLeastOne);
+                if (animate == true) {
                     animateStreakToColor(color);
+                } else {
+                    TextView streakCounter = findViewById(R.id.streakCounter);
+                    ImageButton streakButton = findViewById(R.id.streakButton);
+                    streakCounter.setTextColor(color);
+                    streakButton.setColorFilter(color);
                 }
             });
         });
+    }
+
+    /**
+     * Get the color from the streak
+     * @param finalStreak the final streak
+     * @param allTasksCompletedAtLeastOne whether all of today's tasks were completed
+     * @return the color integer
+     */
+    private int getColorFromStreak(int finalStreak, boolean allTasksCompletedAtLeastOne) {
+        int color;
+
+        if (allTasksCompletedAtLeastOne == false) {
+            return defaultColor;
+        } else if (finalStreak < 100) {
+            //work out the saturation
+            float h = 0;
+            //otherwise, start from 50%
+            if (finalStreak > 0) {
+                h = (float) (41 - (21 * (finalStreak/100f)));
+            }
+            //bounding
+            if (h > 365) {
+                h = 365;
+            } else if (h < 0) {
+                h = 0;
+            }
+            //set the color
+            color = ColorUtils.HSLToColor(new float[]{ h, 1f, 0.5f });
+            //set both the streakImage and the streakCounter colors
+        } else {
+            if (finalStreak < 365 ) {
+                color = ColorUtils.HSLToColor(new float[]{199f, 1f, 0.5f});
+            } else {
+                color = ColorUtils.HSLToColor(new float[]{313f, 1f, 0.5f});
+            }
+        }
+
+        return color;
     }
 
     /**
      * Animates the color of the streakImage and streakCounter from the current color of the streakCounter to the specified color
      * @param colorTo the new color for the streakImage and streakCounter to be
      */
-    public void animateStreakToColor( int colorTo) {
+    private void animateStreakToColor( int colorTo) {
         TextView streakCounter = findViewById(R.id.streakCounter);
-        ImageView streakImage = findViewById(R.id.streakImage);
-        int colorFrom = defaultColor;
+        ImageButton streakButton = findViewById(R.id.streakButton);
+        int colorFrom = streakCounter.getCurrentTextColor();
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
         colorAnimation.addUpdateListener(animator -> {
             streakCounter.setTextColor((Integer)animator.getAnimatedValue());
-            streakImage.setColorFilter((Integer)animator.getAnimatedValue());
+            streakButton.setColorFilter((Integer)animator.getAnimatedValue());
         });
         colorAnimation.setDuration(ANIMATION_DURATION);
         colorAnimation.start();
     }
 
-    /**
-     * Returns whether all of today's tasks were completed AND if there were tasks today
-     * @param todayTasks all of today's tasks
-     * @return whether there are tasks AND they are all completed
-     */
-    public boolean areAllTasksCompletedAtLeastOne(List<Task> todayTasks) {
-        if (todayTasks.size() > 0) { //if there are tasks today
-            for (Task task : todayTasks) {
-                if (task.getComplete() == false) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            if (sharedPreferences.getBoolean(getString(R.string.today_at_least_one_completed), false) == true) {
-                return true;
-            }
-        }
-        return false;
-    }
 
 
     /**
@@ -502,7 +554,7 @@ public class MainActivity extends AppCompatActivity {
      * Add a task to the database
      * @param name the name of the task
      */
-    public void addTask(String name) {
+    private void addTask(String name) {
         //ROOM Threads
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
@@ -520,7 +572,86 @@ public class MainActivity extends AppCompatActivity {
                 //rvTasks.scheduleLayoutAnimation();
                 rvTasks.scrollToPosition(0);
                 //rvTasks.scheduleLayoutAnimation();
+                checkRvTasksVisibility();
                 updateStreak();
+                checkStreakColor(true);
+            });
+        });
+    }
+
+    /**
+     * Add a task to tomorrow
+     * @param name the name of the task to add
+     */
+    private void addTaskTomorrow(String name) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Add it in the background without refreshing the RVTasks
+            //get the name of the Task to add
+            //Background work here
+            Task task = new Task(name, LocalDate.now().plusDays(1));
+            long taskId = taskDatabase.taskDao().insert(task);
+            task.setId((int) taskId);
+            handler.post(() -> {
+                //UI Thread work here
+                // Add a new task
+                tomorrowAdapter.addTask(0, task);
+                // Notify the adapter that an item was inserted at position 0
+                tomorrowAdapter.notifyItemInserted(0);
+                rvTasksTomorrow.scrollToPosition(0);
+                if (rvTasksTomorrow.getVisibility() == View.GONE) {
+                    setTomorrowVisibility(View.VISIBLE);
+                }
+            });
+        });
+    }
+
+    /**
+     * Add tasks to the adapter given ids of Tasks *already added* into the database
+     * @param ids the ids of the Tasks
+     */
+    private void addIds(ArrayList<Integer> ids) {
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            ArrayList<Task> newTasks = new ArrayList<>();
+            for (Integer id : ids) {
+                Task addTask = taskDatabase.taskDao().getTask(id);
+                if (addTask != null) {
+                    newTasks.add(addTask);
+                }
+            }
+            handler.post(() -> {
+                for (Task addTask : newTasks) {
+                    adapter.addTask(0, addTask);
+                    adapter.notifyItemInserted(0);
+                }
+                checkRvTasksVisibility();
+            });
+        });
+    }
+
+    /**
+     * Delete a task from tomorrow
+     * @param task
+     * @param position
+     */
+    public void deleteTaskFromTomorrow( Task task, int position) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            taskDatabase.taskDao().removeById(task.getId());
+            handler.post(() -> {
+                //UI Thread work here
+                //tell the adapter that the task has been removed
+                tomorrowAdapter.notifyItemRemoved(position);
+                if (tomorrowAdapter.getItemCount() == 0) {
+                    setTomorrowVisibility(View.GONE);
+                }
             });
         });
     }
@@ -530,13 +661,15 @@ public class MainActivity extends AppCompatActivity {
     public void fabButton(View view) {
 
         // Use the Builder class for convenient dialog construction
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
+
+        //get the UI elements
         FloatingActionButton fab = findViewById(R.id.floatingActionButton);
         fab.setVisibility(View.INVISIBLE);
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialog_Rounded);
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View editTextView = inflater.inflate(R.layout.text_input, null);
+        View editTextView = LayoutInflater.from(this).inflate(R.layout.text_input, null);
         EditText input = editTextView.findViewById(R.id.editName);
 
+        //Set the capitalisation from sharedPreferences
         if (sharedPreferences.getBoolean("capitalization", true) == true) {
             input.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         } else {
@@ -561,6 +694,14 @@ public class MainActivity extends AppCompatActivity {
                         // User cancelled the dialog
                         fab.setVisibility(View.VISIBLE);
                     }
+                })
+                .setNeutralButton("Tomorrow", new DialogInterface.OnClickListener() {
+                    public void onClick( DialogInterface dialog, int id ) {
+                        String name = input.getText().toString();
+                        addTaskTomorrow(name);
+                        //reenable the FAB
+                        fab.setVisibility(View.VISIBLE);
+                    }
                 });
         AlertDialog dialog = builder.create();
         dialog.setOnCancelListener(dialog1 -> {
@@ -571,30 +712,63 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button tomorrowButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
         okButton.setEnabled(false);
-        input.addTextChangedListener(new TextWatcher() {
-
-            @Override
-            public void beforeTextChanged( CharSequence s, int start, int count, int after ) {
-
-            }
-
-            @Override
-            public void onTextChanged( CharSequence s, int start, int before, int count ) {
-                if (input.getText().toString().trim().length() > 0) {
-                    okButton.setEnabled(true);
-                } else {
-                    okButton.setEnabled(false);
-                }
-            }
-
-            @Override
-            public void afterTextChanged( Editable s ) {
-
-            }
-        });
-
+        tomorrowButton.setEnabled(false);
+        input.addTextChangedListener(TextWatcherFactory.getNonEmptyTextWatcher(input, okButton, tomorrowButton));
     }
 
+    /**
+     * When the archive button is pressed
+     * @param view
+     */
+    public void onArchiveButton( View view) {
+        Intent intent = new Intent(this, ArchiveActivity.class);
+        startActivityForResult(intent, LIST_TASK_REQUEST);
+    }
+
+    /**
+     * When the streak button is pressed
+     * @param view
+     */
+    public void onStreakButton( View view ) {
+        TextView highScoreTextView = findViewById(R.id.highScoreTextView);
+        setHighScoreText();
+        if (highScoreTextView.getVisibility() == View.VISIBLE) {
+            Animation slideToRight = AnimationUtils.loadAnimation(this, R.anim.slide_to_right);
+            highScoreTextView.startAnimation(slideToRight);
+            slideToRight.setAnimationListener(AnimationListenerFactory.getAnimationListener(highScoreTextView, View.INVISIBLE));
+        } else {
+            Animation slideFromRight = AnimationUtils.loadAnimation(this, R.anim.slide_from_right);
+            highScoreTextView.startAnimation(slideFromRight);
+            slideFromRight.setAnimationListener(AnimationListenerFactory.getAnimationListener(highScoreTextView, View.VISIBLE));
+        }
+    }
+
+    /**
+     * Set the high score text
+     */
+    private void setHighScoreText() {
+        TextView highScoreTextView = findViewById(R.id.highScoreTextView);
+        String html = "<b>BEST&nbsp&nbsp</b>" + sharedPreferences.getInt(getString(R.string.highscore), 0);
+        highScoreTextView.setText(Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT));
+    }
+
+
+    /**
+     * When there is a result from an activity
+     * @param requestCode the requestCode
+     * @param resultCode the resultCode
+     * @param data the data from the activity
+     */
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == LIST_TASK_REQUEST) {
+            if(resultCode == RESULT_OK) {
+                ArrayList<Integer> ids = data.getIntegerArrayListExtra("ids");
+                addIds(ids);
+            }
+        }
+    }
 
 }

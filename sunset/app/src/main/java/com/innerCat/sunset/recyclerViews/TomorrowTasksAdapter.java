@@ -25,26 +25,22 @@ import com.innerCat.sunset.activities.MainActivity;
 import com.innerCat.sunset.factories.TextWatcherFactory;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 // Create the basic adapter extending from RecyclerView.Adapter
 // Note that we specify the custom ViewHolder which gives us access to our views
-public class TasksAdapter extends
-        RecyclerView.Adapter<TasksAdapter.ViewHolder> {
+public class TomorrowTasksAdapter extends
+        RecyclerView.Adapter<TomorrowTasksAdapter.ViewHolder> {
 
     private List<Task> tasks;
-    private Set<TasksAdapter.ViewHolder> mBoundViewHolders = new HashSet<>();
 
     // Provide a direct reference to each of the views within a data item
     // Used to cache the views within the item layout for fast access
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         // Your holder should contain a member variable
         // for any view that will be set as you render a row
-        public TextView bulletPoint;
         public TextView nameTextView;
         public CheckBox checkBox;
         public Task task;
@@ -57,7 +53,6 @@ public class TasksAdapter extends
             // to access the context from any ViewHolder instance.
             super(itemView);
 
-            bulletPoint = (TextView) itemView.findViewById(R.id.bulletPoint);
             nameTextView = (TextView) itemView.findViewById(R.id.nameView);
             checkBox = (CheckBox) itemView.findViewById(R.id.checkBox);
             checkBox.setOnClickListener(v -> {
@@ -117,7 +112,6 @@ public class TasksAdapter extends
                     MainActivity.taskDatabase.taskDao().update(task);
                     handler.post(() -> {
                         ((MainActivity) context).updateStreak();
-                        ((MainActivity) context).checkStreakColor(true);
                     });
                 });
             });
@@ -138,7 +132,7 @@ public class TasksAdapter extends
                 MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context, R.style.MaterialAlertDialog_Rounded);
 
                 //get the UI elements
-                FloatingActionButton fab = ((MainActivity)context).findViewById(R.id.floatingActionButton);
+                FloatingActionButton fab = ((MainActivity) context).findViewById(R.id.floatingActionButton);
                 fab.setVisibility(View.INVISIBLE);
                 View editTextView = LayoutInflater.from(context).inflate(R.layout.text_input, null);
                 EditText input = editTextView.findViewById(R.id.editName);
@@ -164,6 +158,11 @@ public class TasksAdapter extends
                         .setNegativeButton("Cancel", ( dialog, id ) -> {
                             // User cancelled the dialog
                             fab.setVisibility(View.VISIBLE);
+                        })
+                        .setNeutralButton("Delete", ( dialog, id ) -> {
+                            tasks.remove(task);
+                            ((MainActivity) context).deleteTaskFromTomorrow(task, position);
+                            fab.setVisibility(View.VISIBLE);
                         });
                 AlertDialog dialog = builder.create();
                 dialog.setOnCancelListener(dialog1 -> {
@@ -186,7 +185,7 @@ public class TasksAdapter extends
      *
      * @param tasks
      */
-    public TasksAdapter( List<Task> tasks ) {
+    public TomorrowTasksAdapter( List<Task> tasks ) {
         this.tasks = tasks;
     }
 
@@ -199,17 +198,6 @@ public class TasksAdapter extends
      */
     public void addTask( int position, Task task ) {
         tasks.add(position, task);
-    }
-
-    /**
-     * Add a task, notifying the adapter
-     *
-     * @param position the position of the new Task in the List
-     * @param task     the Task to add
-     */
-    public void addTaskNotify( int position, Task task ) {
-        tasks.add(position, task);
-        notifyItemInserted(position);
     }
 
     /**
@@ -227,28 +215,28 @@ public class TasksAdapter extends
     }
 
     /**
-     * Check if there any late tasks
+     * @return the tasks of this TaskAdapter
      */
-    public void checkLate() {
-        for (ViewHolder viewHolder : mBoundViewHolders) {
-            if (viewHolder.task.runningLate() == true) {
-                viewHolder.bulletPoint.setVisibility(View.VISIBLE);
-            } else {
-                viewHolder.bulletPoint.setVisibility(View.GONE);
-            }
-            notifyItemChanged(viewHolder.getAdapterPosition());
-        }
+    public List<Task> getTasks() {
+        return this.tasks;
+    }
+
+    /**
+     * Removes all tasks
+     */
+    public void removeAllTasks() {
+        this.tasks.clear();
     }
 
     // Usually involves inflating a layout from XML and returning the holder
     @NonNull
     @Override
-    public TasksAdapter.ViewHolder onCreateViewHolder( ViewGroup parent, int viewType ) {
+    public TomorrowTasksAdapter.ViewHolder onCreateViewHolder( ViewGroup parent, int viewType ) {
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
 
         // Inflate the custom layout
-        View taskView = inflater.inflate(R.layout.list_item_main, parent, false);
+        View taskView = inflater.inflate(R.layout.list_item_tomorrow, parent, false);
 
         // Return a new holder instance
         ViewHolder viewHolder = new ViewHolder(taskView, context);
@@ -257,20 +245,13 @@ public class TasksAdapter extends
 
     // Involves populating data into the item through holder
     @Override
-    public void onBindViewHolder( TasksAdapter.ViewHolder holder, int position ) {
+    public void onBindViewHolder( TomorrowTasksAdapter.ViewHolder holder, int position ) {
         // Get the data model based on position
         holder.task = tasks.get(position);
 
         // Set item views based on your views and data model
         TextView textView = holder.nameTextView;
         textView.setText(holder.task.getName());
-        CheckBox checkBox = holder.checkBox;
-        checkBox.setChecked(holder.task.isComplete());
-        if (holder.task.runningLate() == false) {
-            holder.bulletPoint.setVisibility(View.GONE);
-        }
-        mBoundViewHolders.add(holder);
-
     }
 
     // Returns the total count of items in the list

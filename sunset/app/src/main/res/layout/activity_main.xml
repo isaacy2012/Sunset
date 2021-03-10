@@ -21,107 +21,189 @@
             app:layout_constraintEnd_toEndOf="parent" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:id="@+id/swipeRefreshLayout">
+        android:id="@+id/swipeRefreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
 
         <androidx.core.widget.NestedScrollView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fillViewport="true"
-                android:id="@+id/nestedScrollView"
-                android:overScrollMode="always">
+            android:id="@+id/nestedScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:overScrollMode="always">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:animateLayoutChanges="true">
 
                 <TextView
-                        android:text=" 0"
-                        android:layout_width="0dp"
+                        android:id="@+id/titleText"
+                        style="@style/TextColor"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="16dp"
+                        android:fontFamily="@font/montserrat"
+                        android:text="Today "
+                        android:textAllCaps="false"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                        android:id="@+id/messageTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/titleText" />
+
+                <TextView
                         android:id="@+id/streakCounter"
-                        app:layout_constraintTop_toTopOf="parent"
-                        android:layout_marginTop="22dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
                         android:fontFamily="sans-serif-medium"
-                        android:textSize="25sp"
-                        app:layout_constraintEnd_toStartOf="@+id/imageButton"
+                        android:text="0"
                         android:textAlignment="center"
-                        app:flow_verticalAlign="center"
+                        android:textSize="26sp"
                         app:flow_horizontalAlign="center"
-                        android:layout_marginEnd="8dp" />
+                        app:flow_verticalAlign="center"
+                        app:layout_constraintEnd_toStartOf="@+id/archiveButton"
+                        android:height="32dp"
+                        android:gravity="center"
+                        app:layout_constraintBottom_toBottomOf="@+id/streakButton"
+                        android:layout_marginBottom="2dp" />
 
                 <ImageButton
+                        android:layout_width="23dp"
+                        android:layout_height="32dp"
+                        android:layout_marginTop="24dp"
+                        app:layout_constraintEnd_toStartOf="@+id/streakCounter"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:srcCompat="@drawable/ic_baseline_local_fire_department_24"
+                        android:background="?android:selectableItemBackgroundBorderless"
+                        android:id="@+id/streakButton"
+                        android:onClick="onStreakButton" />
+
+                <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toTopOf="parent"
+                        android:layout_marginTop="30dp"
+                        app:layout_constraintEnd_toStartOf="@+id/streakButton"
+                        android:id="@+id/linearLayout">
+
+                    <TextView
+                            android:text="HIGHSCORE 3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/highScoreTextView"
+                            android:textAlignment="textEnd"
+                            android:fontFamily="@font/montserrat"
+                            android:layout_marginRight="8dp"
+                            android:visibility="invisible" />
+                </LinearLayout>
+
+                <ImageButton
+                        android:id="@+id/archiveButton"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:id="@+id/imageButton"
-                        android:background="?android:selectableItemBackgroundBorderless"
-                        app:layout_constraintTop_toTopOf="parent"
                         android:layout_marginTop="24dp"
                         android:layout_marginEnd="16dp"
-                        app:layout_constraintEnd_toEndOf="parent"
+                        android:background="?android:selectableItemBackgroundBorderless"
+                        android:onClick="onArchiveButton"
+                        android:paddingLeft="4dp"
                         android:paddingTop="4dp"
                         android:paddingEnd="4dp"
                         android:paddingRight="4dp"
                         android:paddingBottom="4dp"
-                        android:paddingLeft="4dp"
-                        android:onClick="onArchiveButton"
-                        android:src="@drawable/ic_baseline_archive_24" />
-
-                <ImageView
-                        android:layout_width="23dp"
-                        android:layout_height="32dp"
-                        app:srcCompat="@drawable/ic_baseline_local_fire_department_24"
-                        android:id="@+id/streakImage"
-                        app:layout_constraintTop_toTopOf="parent"
-                        android:layout_marginTop="24dp"
-                        android:backgroundTint="@color/primaryColor"
-                        app:layout_constraintEnd_toStartOf="@+id/streakCounter" />
-
-                <TextView
-                        android:text="Today "
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/textView2"
-                        app:layout_constraintStart_toStartOf="parent"
-                        android:layout_marginStart="16dp"
-                        app:layout_constraintTop_toTopOf="parent"
-                        android:layout_marginTop="16dp"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-                        android:fontFamily="@font/montserrat"
-                        android:textAllCaps="false"
-                        style="@style/TextColor"
-                        android:textStyle="bold" />
+                        android:src="@drawable/ic_baseline_archive_24"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
                 <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvTasks"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layoutManager="LinearLayoutManager"
-                        android:scrollbars="vertical"
-                        android:id="@+id/rvTasks"
-                        app:layout_constraintHorizontal_bias="0.0"
+                        android:layout_marginTop="16dp"
                         android:overScrollMode="never"
-                        android:paddingBottom="80dp"
-                        app:layout_constraintTop_toBottomOf="@+id/messageTextView"
-                        android:layout_marginTop="16dp" />
+                        android:scrollbars="vertical"
+                        app:layoutManager="LinearLayoutManager"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/messageTextView" />
 
-                <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/messageTextView"
+                <View
+                        app:layout_constraintTop_toBottomOf="@+id/rvTasks"
+                        android:id="@+id/tomorrowDivider"
+                        android:layout_marginTop="16dp"
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider"
+                        app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         android:layout_marginStart="16dp"
-                        app:layout_constraintTop_toBottomOf="@+id/textView2"
-                        android:layout_marginTop="2dp"
-                        android:fontFamily="sans-serif" />
+                        android:layout_marginEnd="16dp" />
+
+                <TextView
+                        android:text="Tomorrow "
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:layout_marginStart="16dp"
+                        android:id="@+id/tomorrowTextView"
+                        android:fontFamily="@font/montserrat"
+                        android:textStyle="bold"
+                        app:layout_constraintTop_toBottomOf="@+id/tomorrowDivider"
+                        android:layout_marginTop="16dp"
+                        style="@style/TextColor"
+                        android:textSize="18sp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvTasksTomorrow"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:overScrollMode="never"
+                        android:paddingBottom="80dp"
+                        android:scrollbars="vertical"
+                        app:layoutManager="LinearLayoutManager"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:layout_marginTop="16dp"
+                        app:layout_constraintTop_toBottomOf="@+id/tomorrowTextView" />
+
+                <TextView
+                        android:text="UNSTABLE"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/textView4"
+                        app:layout_constraintTop_toTopOf="@+id/linearLayout"
+                        android:layout_marginStart="8dp"
+                        app:layout_constraintStart_toEndOf="@+id/titleText"
+                        android:fontFamily="sans-serif"
+                        android:textSize="10dp"
+                        android:background="@drawable/text_highlight"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="5dp"
+                        style="@style/TextColor" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.core.widget.NestedScrollView>
+
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 

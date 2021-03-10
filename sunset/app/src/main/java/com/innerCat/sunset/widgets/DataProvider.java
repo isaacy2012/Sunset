@@ -9,10 +9,10 @@ import android.text.style.ForegroundColorSpan;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
-import androidx.room.Room;
-
 import com.innerCat.sunset.R;
 import com.innerCat.sunset.Task;
+import com.innerCat.sunset.factories.TaskDatabaseFactory;
+import com.innerCat.sunset.room.Converters;
 import com.innerCat.sunset.room.TaskDatabase;
 
 import java.time.LocalDate;
@@ -24,27 +24,26 @@ import static java.time.temporal.ChronoUnit.DAYS;
 
 public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
 
+    //formatted task strings
     List<SpannableStringBuilder> tasks = new ArrayList<>();
-    Context context = null;
-    TaskDatabase taskDatabase;
+    Context context;
 
     public DataProvider(Context context, Intent intent) {
         this.context = context;
-        taskDatabase = Room.databaseBuilder(context.getApplicationContext(),
-                TaskDatabase.class, "tasks")
-                //.fallbackToDestructiveMigration()
-                .addMigrations(TaskDatabase.MIGRATION_2_3)
-                .build();
     }
 
     @Override
     public void onCreate() {
     }
 
+    /**
+     * When the dataset is changed
+     */
     @Override
     public void onDataSetChanged() {
         tasks.clear();
-        List<Task> incompleteTasks = taskDatabase.taskDao().getAllUncompletedTasks();
+        TaskDatabase taskDatabase = TaskDatabaseFactory.getTaskDatabase(context);
+        List<Task> incompleteTasks = taskDatabase.taskDao().getAllUncompletedTasksBeforeAndToday(Converters.todayString());
         //formatting the tasks
         for (int i = 0; i < incompleteTasks.size(); i++) {
             if (DAYS.between(incompleteTasks.get(i).getDate(), LocalDate.now()) != 0) {
@@ -86,7 +85,7 @@ public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
     public RemoteViews getViewAt(int position) {
         RemoteViews widgetListView = new RemoteViews(context.getPackageName(),
                 R.layout.list_item_widget);
-        widgetListView.setTextViewText(R.id.listItemWidgetTextView, tasks.get(position));
+        widgetListView.setTextViewText(R.id.listItemWidgetTextView, (position < tasks.size() ? tasks.get(position) : "error"));
 
         // Create an Intent to launch MainActivity
         Intent intent = new Intent();
