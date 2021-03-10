@@ -17,6 +17,13 @@ android {
         }
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // The following argument makes the Android Test Orchestrator run its
+        // "pm clear" command after each test invocation. This command ensures
+        // that the app's state is completely cleared between tests.
+        testInstrumentationRunnerArguments clearPackageData: 'true'
+        testOptions {
+            execution 'ANDROIDX_TEST_ORCHESTRATOR'
+        }
     }
 
     buildTypes {
@@ -32,13 +39,17 @@ android {
 }
 
 dependencies {
+    //orchestrator
+    androidTestImplementation 'androidx.test:runner:1.4.0-alpha04'
+    androidTestUtil 'androidx.test:orchestrator:1.4.0-alpha04'
+
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testImplementation 'org.testng:testng:6.9.6'
     androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.4.0-alpha04'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
-    androidTestImplementation 'junit:junit:4.12'
+    androidTestImplementation 'junit:junit:4.13.2'
     def room_version = "2.2.6"
 
     implementation "androidx.room:room-runtime:$room_version"

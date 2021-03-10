@@ -26,7 +26,7 @@ public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
 
     //formatted task strings
     List<SpannableStringBuilder> tasks = new ArrayList<>();
-    Context context = null;
+    Context context;
 
     public DataProvider(Context context, Intent intent) {
         this.context = context;
@@ -85,7 +85,7 @@ public class DataProvider implements RemoteViewsService.RemoteViewsFactory {
     public RemoteViews getViewAt(int position) {
         RemoteViews widgetListView = new RemoteViews(context.getPackageName(),
                 R.layout.list_item_widget);
-        widgetListView.setTextViewText(R.id.listItemWidgetTextView, tasks.get(position));
+        widgetListView.setTextViewText(R.id.listItemWidgetTextView, (position < tasks.size() ? tasks.get(position) : "error"));
 
         // Create an Intent to launch MainActivity
         Intent intent = new Intent();

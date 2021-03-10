@@ -13,6 +13,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -240,6 +241,7 @@ public class TasksAdapter extends
     }
 
     // Usually involves inflating a layout from XML and returning the holder
+    @NonNull
     @Override
     public TasksAdapter.ViewHolder onCreateViewHolder( ViewGroup parent, int viewType ) {
         Context context = parent.getContext();

@@ -176,6 +176,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * When the view is resumed
+     */
+    public void onResume() {
+        super.onResume();
+        if (adapter != null && rvTasks != null & tomorrowAdapter != null && rvTasksTomorrow != null) {
+            adapter.removeAllChecked();
+            checkRvTasksVisibility();
+            tomorrowAdapter.removeAllChecked();
+            checkRvTasksTomorrowVisibility();
+        }
+        updateStreak();
+        checkStreakColor(false);
+    }
+
+    /**
      * Called at 00:00, moves all Tasks in "Tomorrow" to "Today" and checks the visibility of the RecyclerViews
      */
     public void newDay() {
@@ -244,6 +259,9 @@ public class MainActivity extends AppCompatActivity {
      * check and set the visibility of rvTasks according to the tasks
      */
     private void checkRvTasksVisibility() {
+        if (adapter == null) {
+            return;
+        }
         if (adapter.getItemCount() == 0) {
             rvTasks.setVisibility(View.GONE);
         } else {
@@ -255,6 +273,9 @@ public class MainActivity extends AppCompatActivity {
      * check and set the visibility of rvTasksTomorrow according to the tasks for tomorrow
      */
     private void checkRvTasksTomorrowVisibility() {
+        if (tomorrowAdapter == null) {
+            return;
+        }
         if (tomorrowAdapter.getItemCount() == 0) {
             setTomorrowVisibility(View.GONE);
         } else {
@@ -307,48 +328,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * When the view is resumed
-     */
-    public void onResume() {
-        super.onResume();
-        if (adapter != null && rvTasks != null & tomorrowAdapter != null && rvTasksTomorrow != null) {
-            adapter.removeAllChecked();
-            checkRvTasksVisibility();
-            tomorrowAdapter.removeAllChecked();
-            checkRvTasksTomorrowVisibility();
-        }
-        updateStreak();
-        checkStreakColor(false);
-    }
-
-
-    /**
-     * Add tasks to the adapter given ids of Tasks *already added* into the database
-     * @param ids the ids of the Tasks
-     */
-    private void addIds(ArrayList<Integer> ids) {
-        //ROOM Threads
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-        executor.execute(() -> {
-            //Background work here
-            ArrayList<Task> newTasks = new ArrayList<>();
-            for (Integer id : ids) {
-                Task addTask = taskDatabase.taskDao().getTask(id);
-                if (addTask != null) {
-                    newTasks.add(addTask);
-                }
-            }
-            handler.post(() -> {
-                for (Task addTask : newTasks) {
-                    adapter.addTask(0, addTask);
-                    adapter.notifyItemInserted(0);
-                }
-                checkRvTasksVisibility();
-            });
-        });
-    }
 
 
     /**
@@ -376,9 +355,7 @@ public class MainActivity extends AppCompatActivity {
             final int numTasks = tasks.size();
 
             handler.post(() -> {
-                int textAnimationDuration = getResources().getInteger(R.integer.text_animation_duration);
                 TextView messageTextView = findViewById(R.id.messageTextView);
-                int colorFrom = defaultColor;
                 String messageText;
                 if (numTasks == 0) {
                     if (sharedPreferences.getBoolean(getString(R.string.today_at_least_one_completed), false) == true) {
@@ -389,41 +366,58 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     messageText = "You have " + numTasks + " " + (numTasks > 1 ? "tasks" : "task") + " remaining today" ;
                 }
-                if (messageText.equals(messageTextView.getText()) == false) { //if the message is changing, then do the animation
-                    messageTextView.setTextColor(Color.TRANSPARENT);
-                    ValueAnimator reverseAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), Color.TRANSPARENT, colorFrom);
-                    reverseAnimation.addUpdateListener(animator -> {
-                        messageTextView.setTextColor((Integer) animator.getAnimatedValue());
-                    });
-                    reverseAnimation.setDuration(textAnimationDuration);
-                    if (messageTextView.getText().equals("")) { //if this is the first time doing the text, don't need to fade out
-                        messageTextView.setText(messageText);
-                        reverseAnimation.start();
-                    } else { //otherwise, fade out and fade back in
-                        AnimatorSet as = new AnimatorSet();
-                        ValueAnimator animationToTransparent = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, Color.TRANSPARENT);
-                        animationToTransparent.addListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd( Animator animation) {
-                                messageTextView.setText(messageText);
-                            }
-                        });
-                        animationToTransparent.addUpdateListener(animator -> {
-                            messageTextView.setTextColor((Integer) animator.getAnimatedValue());
-                        });
-                        animationToTransparent.setDuration(textAnimationDuration);
-                        as.play(animationToTransparent).before(reverseAnimation);
-                        as.start();
-                    }
+                if (messageText.equals(messageTextView.getText().toString()) == false) { //if the message is changing, then do the animation
+                    setAnimateMessageView(messageText);
                 }
             });
         });
 
     }
 
+    /**
+     * Animates the message view to the message text
+     * @param messageText the text for the messageTextView to display
+     */
+    private void setAnimateMessageView( String messageText) {
+        int colorFrom = defaultColor;
+        int textAnimationDuration = getResources().getInteger(R.integer.text_animation_duration);
+        TextView messageTextView = findViewById(R.id.messageTextView);
+        messageTextView.setTextColor(Color.TRANSPARENT);
+
+        ValueAnimator reverseAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), Color.TRANSPARENT, colorFrom);
+        //set the text color with reverseAnimation
+        reverseAnimation.addUpdateListener(animator -> {
+            messageTextView.setTextColor((Integer) animator.getAnimatedValue());
+        });
+        reverseAnimation.setDuration(textAnimationDuration);
+
+        if (messageTextView.getText().equals("")) { //if this is the first time doing the text, don't need to fade out
+            messageTextView.setText(messageText);
+            reverseAnimation.start();
+        } else { //otherwise, fade out and fade back in
+            AnimatorSet as = new AnimatorSet();
+            ValueAnimator animationToTransparent = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, Color.TRANSPARENT);
+
+            //set the message text once the text is completely transparent
+            animationToTransparent.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd( Animator animation) {
+                    messageTextView.setText(messageText);
+                }
+            });
+            animationToTransparent.addUpdateListener(animator -> {
+                messageTextView.setTextColor((Integer) animator.getAnimatedValue());
+            });
+            animationToTransparent.setDuration(textAnimationDuration);
+            as.play(animationToTransparent).before(reverseAnimation);
+            as.start();
+        }
+    }
+
     /*
      * Update the streak
      */
+
     public void updateStreak() {
         updateMessage();
         HomeWidgetProvider.broadcastUpdate(this);
@@ -440,7 +434,6 @@ public class MainActivity extends AppCompatActivity {
             });
         });
     }
-
 
     /**
      * Display the streak
@@ -590,7 +583,7 @@ public class MainActivity extends AppCompatActivity {
      * Add a task to tomorrow
      * @param name the name of the task to add
      */
-    public void addTaskTomorrow(String name) {
+    private void addTaskTomorrow(String name) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
@@ -610,6 +603,33 @@ public class MainActivity extends AppCompatActivity {
                 if (rvTasksTomorrow.getVisibility() == View.GONE) {
                     setTomorrowVisibility(View.VISIBLE);
                 }
+            });
+        });
+    }
+
+    /**
+     * Add tasks to the adapter given ids of Tasks *already added* into the database
+     * @param ids the ids of the Tasks
+     */
+    private void addIds(ArrayList<Integer> ids) {
+        //ROOM Threads
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            //Background work here
+            ArrayList<Task> newTasks = new ArrayList<>();
+            for (Integer id : ids) {
+                Task addTask = taskDatabase.taskDao().getTask(id);
+                if (addTask != null) {
+                    newTasks.add(addTask);
+                }
+            }
+            handler.post(() -> {
+                for (Task addTask : newTasks) {
+                    adapter.addTask(0, addTask);
+                    adapter.notifyItemInserted(0);
+                }
+                checkRvTasksVisibility();
             });
         });
     }

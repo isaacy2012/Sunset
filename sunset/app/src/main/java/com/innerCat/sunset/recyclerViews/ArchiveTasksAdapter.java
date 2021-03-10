@@ -8,6 +8,7 @@ import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.innerCat.sunset.R;
@@ -114,7 +115,7 @@ public class ArchiveTasksAdapter extends
     /**
      * Pass in the tasks array into the Adapter
      *
-     * @param tasks
+     * @param tasks the list of Tasks
      */
     public ArchiveTasksAdapter( List<Task> tasks ) {
         this.archivedTasks = tasks;
@@ -131,6 +132,7 @@ public class ArchiveTasksAdapter extends
     }
 
     // Usually involves inflating a layout from XML and returning the holder
+    @NonNull
     @Override
     public ArchiveTasksAdapter.ViewHolder onCreateViewHolder( ViewGroup parent, int viewType ) {
         Context context = parent.getContext();

@@ -39,8 +39,7 @@
                 android:id="@+id/checkBox"
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
-                android:layout_weight="0"
-                android:onClick="checkBoxClicked" />
+                android:layout_weight="0" />
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

@@ -190,7 +190,7 @@ public class ArchiveActivity extends AppCompatActivity {
     /**
      * Check the status of the UI items with respect to the deleteMode
      */
-    public void checkDelete() {
+    private void checkDelete() {
         adapter.checkDelete(deleteMode);
         if (deleteMode == true) {
             rvTasks.setPadding(0, 0, 0, Converters.fromDpToPixels(68, getResources()));
@@ -250,10 +250,10 @@ public class ArchiveActivity extends AppCompatActivity {
         });
     }
 
-    @Override
     /**
      * When the hardware/software back button is pressed
      */
+    @Override
     public void onBackPressed() {
         Intent intent = new Intent();
         //pass back the ids to the MainActivity
