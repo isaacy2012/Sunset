@@ -84,6 +84,9 @@ public interface TaskDao {
     @Query("SELECT * FROM tasks WHERE date(date) = date(:today)")
     public List<Task> getDayTasks( String today );
 
+    @Query("SELECT * FROM tasks WHERE ( completeDate IS NULL AND julianday(date) >= date(:day) )")
+    public List<Task> getUncompleteTasksSince( String day );
+
     /**
      * Returns all uncompleted Tasks as a List
      *

@@ -111,6 +111,7 @@ public class DBMethods {
      */
     public static int updateDayStreak(Context context, TaskDatabase taskDatabase, int streak, int maxStreak) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("preferences", Context.MODE_PRIVATE);
+        LocalDate lastUpdated = Converters.fromTimestamp(sharedPreferences.getString(context.getString(R.string.last_updated), Converters.dateToTimestamp(LocalDate.ofEpochDay(0))));
         SharedPreferences.Editor editor = sharedPreferences.edit();
 
         List<Task> yesterdayTasks = taskDatabase.taskDao().getDayTasks(Converters.dateToTimestamp(LocalDate.now().minusDays(1)));
