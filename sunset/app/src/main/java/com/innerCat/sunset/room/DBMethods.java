@@ -56,7 +56,7 @@ public class DBMethods {
     }
 
     /**
-     * Calculate the maximum streak possible (assuming no days where the user had no tasks
+     * Calculate the maximum streak possible (assuming no days where the user had no tasks)
      * @param context the Context
      * @param taskDatabase the TaskDatabase
      * @return the maximum streak possible
@@ -111,7 +111,11 @@ public class DBMethods {
      */
     public static int updateDayStreak(Context context, TaskDatabase taskDatabase, int streak, int maxStreak) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("preferences", Context.MODE_PRIVATE);
-        LocalDate lastUpdated = Converters.fromTimestamp(sharedPreferences.getString(context.getString(R.string.last_updated), Converters.dateToTimestamp(LocalDate.ofEpochDay(0))));
+        LocalDate lastUpdated = Converters.fromTimestamp(
+                sharedPreferences.getString(context.getString(R.string.last_updated),
+                        Converters.dateToTimestamp(LocalDate.ofEpochDay(0))));
+        LocalDate lastStreakTaskFailDate = taskDatabase.taskDao()
+                .getLastStreakTask(Converters.todayString()).getDate();
         SharedPreferences.Editor editor = sharedPreferences.edit();
 
         List<Task> yesterdayTasks = taskDatabase.taskDao().getDayTasks(Converters.dateToTimestamp(LocalDate.now().minusDays(1)));
@@ -129,6 +133,10 @@ public class DBMethods {
                 streak = 0;
                 editor.putInt(context.getString(R.string.streak), streak);
                 editor.putString(context.getString(R.string.streak_task_date), Converters.dateToTimestamp(LocalDate.now().minusDays(1)));
+            } else if (lastStreakTaskFailDate.isAfter(lastUpdated)) {
+                //sets the streak to 0 since if there were completed tasks in between then it must
+                //been updated at that point anyway
+                streak = 0;
             }
             //otherwise the streak is the same
         }
