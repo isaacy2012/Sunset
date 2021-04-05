@@ -71,7 +71,7 @@
                 android:paddingLeft="16dp"
                 android:paddingRight="4dp"
                 android:layout_weight="0"
-                android:visibility="gone" />
+                android:visibility="visible" />
 
     </LinearLayout>
 

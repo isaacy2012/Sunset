@@ -38,7 +38,7 @@ public class ArchiveActivity extends AppCompatActivity {
     RecyclerView rvTasks;
     ArchiveTasksAdapter adapter;
     ArrayList<Integer> idsToReplay = new ArrayList<>();
-    ArrayList<Task> deleteTasks = new ArrayList<Task>();
+    ArrayList<Task> deleteTasks = new ArrayList<>();
     ExtendedFloatingActionButton deleteFAB;
     ImageButton deleteButton;
     boolean deleteMode = false;
