@@ -142,6 +142,7 @@ public class TasksAdapter extends
                 fab.setVisibility(View.INVISIBLE);
                 View editTextView = LayoutInflater.from(context).inflate(R.layout.text_input, null);
                 EditText input = editTextView.findViewById(R.id.editName);
+                input.setText(task.getName());
 
                 //Set the capitalisation from sharedPreferences
                 if (context.getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("capitalization", true) == true) {
@@ -159,6 +160,7 @@ public class TasksAdapter extends
                             String newName = input.getText().toString();
                             //edit the task
                             task.setName(newName);
+                            fab.setVisibility(View.VISIBLE);
                             ((MainActivity) context).updateTask(task, position);
                         })
                         .setNegativeButton("Cancel", ( dialog, id ) -> {
@@ -174,7 +176,7 @@ public class TasksAdapter extends
                 dialog.show();
                 dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
                 Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                okButton.setEnabled(false);
+                okButton.setEnabled(true);
                 input.addTextChangedListener(TextWatcherFactory.getNonEmptyTextWatcher(input, okButton, null));
             }
         }

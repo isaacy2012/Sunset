@@ -202,7 +202,8 @@
                         android:background="@drawable/text_highlight"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="5dp"
-                        style="@style/TextColor" />
+                        style="@style/TextColor"
+                        android:visibility="gone" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.core.widget.NestedScrollView>
